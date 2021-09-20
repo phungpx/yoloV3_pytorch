@@ -1,7 +1,5 @@
 import torch
 import torch.nn as nn
-
-
 """
 Information about architecture config:
 Tuple is structured by (filters, kernel_size, stride)

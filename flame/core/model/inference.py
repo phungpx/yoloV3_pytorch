@@ -25,17 +25,16 @@ def inference(
     batch_boxes, batch_labels, batch_scores = [], [], []
 
     for i, pred in enumerate(predictions):
-        S = pred.shape[0]
+        S = pred.shape[2]
 
         # anchor: 1 x 3 x 1 x 1 x 2
         anchor = torch.tensor(anchors[i], device=device, dtype=torch.float)  # anchor: 3 x 2
         anchor = anchor.reshape(1, 3, 1, 1, 2)
 
-        # N x 3 x S x S x 1
-        x_indices = torch.arange(S).repeat(batch_size, 3, S, 1)
-        x_indices = x_indices.unsqueeze(dim=-1).to(device)
-        y_indices = x_indices.permute(0, 1, 3, 2, 4)
-
+        # N x 3 x S x S
+        x_indices = torch.arange(S).repeat(batch_size, 3, S, 1).to(device)
+        y_indices = x_indices.permute(0, 1, 3, 2)
+        
         # N x 3 x S x S -> reshape: N x (3 * S * S)
         # score = sigmoid(tp)
         scores = torch.sigmoid(pred[..., 0]).reshape(batch_size, -1)
@@ -43,20 +42,19 @@ def inference(
         # N x 3 x S x S -> reshape: N x (3 * S * S)
         labels = torch.argmax(pred[..., 5:], dim=-1).reshape(batch_size, -1)
 
-        # xy: N x 3 x S x S x 2 (top-left corner of bboxes)
+        # xy: N x 3 x S x S x 2 (center of bboxes)
         # bx = sigmoid(tx) + cx, by = sigmoid(ty) + cy
         bx = (torch.sigmoid(pred[..., 1]) + x_indices) * (image_size / S)
         by = (torch.sigmoid(pred[..., 2]) + y_indices) * (image_size / S)
-        bxy = torch.cat([bx, by], dim=-1)
+        bxy = torch.stack([bx, by], dim=-1)
 
         # wh: N x 3 x S x S x 2 (width, height of bboxes)
         # bw = pw * e ^ tw, bh = ph * e ^ th
         bwh = (image_size * anchor) * torch.exp(pred[..., 3:5])
 
         # boxes (x1 y1 x2 y2 type): N x (3 * S * S) x 4
-        boxes = torch.cat([bxy, bwh], dim=-1).reshape(batch_size, -1, 4)  # boxes (x1 y1 w h type)
-        boxes = ops.box_convert(boxes=boxes, in_fmt='xywh', out_fmt='xyxy')
-        boxes = ops.clip_boxes_to_image(boxes=boxes, size=(image_size, image_size))
+        boxes = torch.cat([bxy - bwh / 2, bxy + bwh / 2], dim=-1).reshape(batch_size, -1, 4)
+        boxes = torch.clamp(boxes, min=0, max=image_size)
 
         batch_boxes.append(boxes)
         batch_labels.append(labels)
