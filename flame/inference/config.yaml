@@ -1,0 +1,42 @@
+module: flame.predictor
+class: Predictor
+Predictor:
+  model: flame.core.model.darknet53
+  class: YOLOv3
+  YOLOv3:
+    in_channels: 3
+    num_classes: 20
+  weight_path: '''checkpoint/pretrained_weight/78.1map_0.2threshold_PASCAL.tar'''
+  batch_size: 1
+  image_size: 416
+  mean: '(0., 0., 0.)'
+  std: '(1., 1., 1.)'
+  anchors: [
+    [(0.28, 0.22), (0.38, 0.48), (0.9, 0.78)],    # S = 13
+    [(0.07, 0.15), (0.15, 0.11), (0.14, 0.29)],   # S = 26
+    [(0.02, 0.03), (0.04, 0.07), (0.08, 0.06)],   # S = 52
+  ]
+  score_threshold: 0.5
+  iou_threshold: 0.5
+  classes:
+    aeroplane: 0
+    bicycle: 1
+    bird: 2
+    boat: 3
+    bottle: 4
+    bus: 5
+    car: 6
+    cat: 7
+    chair: 8
+    cow: 9
+    diningtable: 10
+    dog: 11
+    horse: 12
+    motorbike: 13
+    person: 14
+    pottedplant: 15
+    sheep: 16
+    sofa: 17
+    train: 18
+    tvmonitor: 19
+  device: '''cpu'''

@@ -80,7 +80,7 @@ class Trainer(Engine):
         params = [param.to(self.device) if torch.is_tensor(param) else param for param in batch]
         params[1] = [param.to(self.device) for param in params[1]]
         params[0] = self.model(params[0])
-        loss = sum([self.loss(pred, target, anchors) for pred, target, anchors in zip(params[0], params[1], self.scaled_anchors)])
+        loss = self.loss(pred, target, anchors)
         loss = loss.sum()
         # print(f'loss={loss}')
         loss.backward()

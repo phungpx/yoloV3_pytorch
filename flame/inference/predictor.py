@@ -21,6 +21,7 @@ class Predictor:
         weight_path: str = None,
         batch_size: Optional[str] = None,
         image_size: int = 416,
+        classes: Dict[str, int] = None,
         mean: Tuple[float, float, float] = (0., 0., 0.),
         std: Tuple[float, float, float] = (1., 1., 1.),
         anchors: List[List[Tuple[float, float]]] = None,
@@ -37,6 +38,7 @@ class Predictor:
         self.score_threshold = score_threshold
         self.mean = torch.tensor(mean, dtype=torch.float, device=device).view(1, 3, 1, 1)
         self.std = torch.tensor(std, dtype=torch.float, device=device).view(1, 3, 1, 1)
+        self.classes = {class_id: class_name for class_name, class_id in classes.items()}
 
         state_dict = torch.load(f=weight_path, map_location=device)
         self.model = model.load_state_dict(state_dict=state_dict['state_dict'])
@@ -48,6 +50,12 @@ class Predictor:
         preds = self.process(samples)
         outputs = self.postprocess(preds)
 
+        for i in range(len(images)):
+            if outputs[i]['label'] is not None:
+                ratio = max(images[i].shape[:2]) / self.image_size
+                outputs[i]['boxes'] *= ratio
+                outputs[i]['names'] = [self.classes[label] for label in outputs[i]['labels']]
+
         return outputs
 
     def preprocess(self, images: List[np.ndarray]) -> List[np.ndarray]:
@@ -57,7 +65,7 @@ class Predictor:
         Outputs:
             samples: list of processed images (sample: 416 x 416 x 3)
         '''
-        samples = [], []
+        samples = []
         for image in images:
             sample = self._resize(image, imsize=self.image_size)
             sample = self._pad_to_square(sample)
@@ -108,7 +116,7 @@ class Predictor:
     def postprocess(self, preds: Tuple[Tensor, Tensor, Tensor]) -> List[Dict[str, Tensor]]:
         '''
         Args:
-            preds: list of three tensor for three scales (S1=13, S2=26, S3=52),
+            preds: tuple of three tensor for three scales (S1=13, S2=26, S3=52),
                 .1: N x 3 x S1 x S1 x (5 + C)
                 .2: N x 3 x S2 x S2 x (5 + C)
                 .3: N x 3 x S3 x S3 x (5 + C)
@@ -167,13 +175,7 @@ class Predictor:
             score_indices = batch_scores[batch_id, :] > score_threshold
 
             if score_indices.sum() == 0:
-                outputs.append(
-                    {
-                        'boxes': torch.tensor([[0, 0, 1, 1]], dtype=torch.float, device=device),
-                        'labels': torch.tensor([-1], dtype=torch.int64, device=device),
-                        'scores': torch.tensor([0], dtype=torch.float, device=device)
-                    }
-                )
+                outputs.append({'boxes': None, 'labels': None, 'scores': None})
 
                 continue
 
@@ -195,13 +197,7 @@ class Predictor:
                     }
                 )
             else:
-                outputs.append(
-                    {
-                        'boxes': torch.tensor([[0, 0, 1, 1]], dtype=torch.float, device=device),
-                        'labels': torch.tensor([-1], dtype=torch.int64, device=device),
-                        'scores': torch.tensor([0], dtype=torch.float, device=device)
-                    }
-                )
+                outputs.append({'boxes': None, 'labels': None, 'scores': None})
 
         return outputs
 

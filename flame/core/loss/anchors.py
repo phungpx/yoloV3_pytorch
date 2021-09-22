@@ -42,7 +42,7 @@ class AnchorGeneration(nn.Module):
             x1, y1 = cx - w / 2, cy - h / 2  # 3 x scale x scale
             x2, y2 = cx + w / 2, cy + h / 2  # 3 x scale x scale
             
-            anchor_boxes[scale] = torch.stack([x1, y1, x2, y2], dim=3)  # 3 x scale x scale x 4
+            anchor_boxes[scale] = torch.stack([x1, y1, x2, y2], dim=3).unsqueeze(dim=0)  # 1 x 3 x scale x scale x 4
 
         return anchor_boxes
 
