@@ -54,7 +54,7 @@ class Predictor:
             if outputs[i]['label'] is not None:
                 ratio = max(images[i].shape[:2]) / self.image_size
                 outputs[i]['boxes'] *= ratio
-                outputs[i]['names'] = [self.classes[label] for label in outputs[i]['labels']]
+                outputs[i]['names'] = [self.classes[label.item()] for label in outputs[i]['labels']]
 
         return outputs
 
