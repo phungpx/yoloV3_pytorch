@@ -21,8 +21,6 @@ if __name__ == '__main__':
     config = utils.load_yaml(args.config)
     predictor = utils.create_instance(config)
 
-    print(args.image_paths)
-
     images = [cv2.imread(image_path) for image_path in args.image_paths]
     predictions = predictor(images)
 

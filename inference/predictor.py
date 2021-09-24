@@ -33,7 +33,6 @@ class Predictor:
         device: str = 'cpu',
     ):
         super(Predictor, self).__init__()
-        print(anchors)
         self.device = device
         self.anchors = anchors
         self.batch_size = batch_size
