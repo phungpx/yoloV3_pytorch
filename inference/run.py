@@ -3,15 +3,15 @@ import argparse
 import numpy as np
 from pathlib import Path
 
-from . import utils
+import utils
 
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('--config', default='flame/inference/config.yaml')
+    parser.add_argument('--config', default='config.yaml')
     parser.add_argument('--image-paths', nargs='+')
     parser.add_argument('--show', action='store_true')
-    parser.add_argument('--output-dir', default='flame/inference/output/')
+    parser.add_argument('--output-dir', default='output/')
     args = parser.parse_args()
 
     output_dir = Path(args.output_dir)
@@ -19,7 +19,9 @@ if __name__ == '__main__':
         output_dir.mkdir(parents=True)
 
     config = utils.load_yaml(args.config)
-    predictor = utils.eval_config(config)
+    predictor = utils.create_instance(config)
+
+    print(args.image_paths)
 
     images = [cv2.imread(image_path) for image_path in args.image_paths]
     predictions = predictor(images)
@@ -40,7 +42,7 @@ if __name__ == '__main__':
                 )
 
                 cv2.rectangle(
-                    img=image,
+                    img=images[i],
                     pt1=tuple(box[:2]),
                     pt2=tuple(box[2:]),    
                     color=color,
@@ -48,7 +50,7 @@ if __name__ == '__main__':
                 )
 
                 cv2.putText(
-                    img=image,
+                    img=images[i],
                     text=f'{class_name}: {score: .4f}',
                     org=tuple(box[:2]),
                     fontFace=cv2.FONT_HERSHEY_PLAIN,
@@ -57,9 +59,9 @@ if __name__ == '__main__':
                     thickness=thickness,
                     lineType=cv2.LINE_AA)
 
-        cv2.imwrite(str(output_dir.joinpath(Path(args.image_paths[i]).name), image)
+        cv2.imwrite(str(output_dir.joinpath(Path(args.image_paths[i]).name)), images[i])
 
         if args.show:
-            cv2.imshow('visual', image)
+            cv2.imshow('visual', images[i])
             cv2.waitKey()
             cv2.destroyAllWindows()

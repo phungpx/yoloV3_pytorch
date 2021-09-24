@@ -2,8 +2,11 @@ import cv2
 import torch
 import numpy as np
 
+from torchvision import ops
 from torch import nn, Tensor
 from typing import List, Tuple, Dict, Union, Optional, Generator
+
+import utils
 
 
 def chunks(lst: list, size: Optional[int] = None) -> Union[List, Generator]:
@@ -17,7 +20,7 @@ def chunks(lst: list, size: Optional[int] = None) -> Union[List, Generator]:
 class Predictor:
     def __init__(
         self,
-        model: nn.Module = None,
+        model: dict = None,
         weight_path: str = None,
         batch_size: Optional[str] = None,
         image_size: int = 416,
@@ -30,7 +33,8 @@ class Predictor:
         device: str = 'cpu',
     ):
         super(Predictor, self).__init__()
-        self.device
+        print(anchors)
+        self.device = device
         self.anchors = anchors
         self.batch_size = batch_size
         self.image_size = image_size
@@ -40,9 +44,10 @@ class Predictor:
         self.std = torch.tensor(std, dtype=torch.float, device=device).view(1, 3, 1, 1)
         self.classes = {class_id: class_name for class_name, class_id in classes.items()}
 
+        self.model = utils.create_instance(model)
         state_dict = torch.load(f=weight_path, map_location=device)
-        self.model = model.load_state_dict(state_dict=state_dict['state_dict'])
-        self.model.to(device).eval()
+        self.model.load_state_dict(state_dict=state_dict['state_dict'])
+        self.model.eval().to(device)
 
 
     def __call__(self, images: List[np.ndarray]) -> List[Dict[str, Tensor]]:
@@ -51,7 +56,7 @@ class Predictor:
         outputs = self.postprocess(preds)
 
         for i in range(len(images)):
-            if outputs[i]['label'] is not None:
+            if outputs[i]['labels'] is not None:
                 ratio = max(images[i].shape[:2]) / self.image_size
                 outputs[i]['boxes'] *= ratio
                 outputs[i]['names'] = [self.classes[label.item()] for label in outputs[i]['labels']]
@@ -93,7 +98,7 @@ class Predictor:
         s1_preds, s2_preds, s3_preds = [], [], []
 
         for batch in chunks(samples, size=self.batch_size):
-            batch = [torch.from_numpy(batch) for batch in batchs]
+            batch = [torch.from_numpy(sample) for sample in batch]
             batch = torch.stack(batch, dim=0).to(self.device)
             batch = batch.permute(0, 3, 1, 2).contiguous()
             batch = (batch.float().div(255.) - self.mean) / self.std
@@ -136,7 +141,7 @@ class Predictor:
             anchor = anchor.reshape(1, 3, 1, 1, 2)
 
             # cx, cy: N x 3 x S x S
-            cx = torch.arange(S).repeat(num_samples, 3, S, 1).to(device)
+            cx = torch.arange(S).repeat(num_samples, 3, S, 1).to(self.device)
             cy = cx.permute(0, 1, 3, 2)
 
             # N x 3 x S x S -> reshape: N x (3 * S * S)
@@ -148,18 +153,18 @@ class Predictor:
 
             # xy: N x 3 x S x S x 2 (center of bboxes)
             # bx = sigmoid(tx) + cx, by = sigmoid(ty) + cy
-            bx = (torch.sigmoid(pred[..., 1]) + cx) * (image_size / S)
-            by = (torch.sigmoid(pred[..., 2]) + cy) * (image_size / S)
+            bx = (torch.sigmoid(pred[..., 1]) + cx) * (self.image_size / S)
+            by = (torch.sigmoid(pred[..., 2]) + cy) * (self.image_size / S)
             bxy = torch.stack([bx, by], dim=-1)
 
             # wh: N x 3 x S x S x 2 (width, height of bboxes)
             # bw = pw * e ^ tw, bh = ph * e ^ th
-            bwh = (image_size * anchor) * torch.exp(pred[..., 3:5])
+            bwh = (self.image_size * anchor) * torch.exp(pred[..., 3:5])
 
             # boxes (x1 y1 x2 y2 type): N x (3 * S * S) x 4
             x1y1, x2y2 = bxy - bwh / 2, bxy + bwh / 2  # convert xywh to x1y1x2y2
             boxes = torch.cat([x1y1, x2y2], dim=-1).reshape(num_samples, -1, 4)
-            boxes = torch.clamp(boxes, min=0, max=image_size)  # clip box within [0, image_size]
+            boxes = torch.clamp(boxes, min=0, max=self.image_size)  # clip box within [0, image_size]
 
             batch_boxes.append(boxes)
             batch_labels.append(labels)
@@ -171,21 +176,21 @@ class Predictor:
 
         outputs = []
 
-        for batch_id in range(batch_size):
-            score_indices = batch_scores[batch_id, :] > score_threshold
+        for sample_id in range(num_samples):
+            score_indices = batch_scores[sample_id, :] > self.score_threshold
 
             if score_indices.sum() == 0:
                 outputs.append({'boxes': None, 'labels': None, 'scores': None})
 
                 continue
 
-            boxes = batch_boxes[batch_id, score_indices, :]  # [n x 4]
-            labels = batch_labels[batch_id, score_indices]   # [n]
-            scores = batch_scores[batch_id, score_indices]   # [n]
+            boxes = batch_boxes[sample_id, score_indices, :]  # [n x 4]
+            labels = batch_labels[sample_id, score_indices]   # [n]
+            scores = batch_scores[sample_id, score_indices]   # [n]
 
             nms_indices = ops.boxes.batched_nms(
                 boxes=boxes, scores=scores, idxs=labels,
-                iou_threshold=iou_threshold
+                iou_threshold=self.iou_threshold
             )
 
             if nms_indices.shape[0] != 0:
@@ -204,7 +209,7 @@ class Predictor:
     def _resize(self, image: np.ndarray, imsize=416) -> Tuple[np.ndarray, float]:
         ratio = imsize / max(image.shape)
         image = cv2.resize(image, (0, 0), fx=ratio, fy=ratio)
-        return image, ratio
+        return image
 
     def _pad_to_square(self, image: np.ndarray) -> np.ndarray:
         height, width = image.shape[:2]
