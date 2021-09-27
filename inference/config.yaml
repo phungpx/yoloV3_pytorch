@@ -17,8 +17,8 @@ Predictor:
     [[0.07, 0.15], [0.15, 0.11], [0.14, 0.29]],   # S = 26
     [[0.02, 0.03], [0.04, 0.07], [0.08, 0.06]],   # S = 52
   ]
-  score_threshold: 0.5
-  iou_threshold: 0.5
+  score_threshold: 0.7
+  iou_threshold: 0.4
   classes:
     aeroplane: 0
     bicycle: 1
