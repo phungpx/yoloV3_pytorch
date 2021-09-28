@@ -1,14 +1,15 @@
 import torch
 import torch.nn as nn
 
-""" 
+"""
 Information about architecture config:
-Tuple is structured by (filters, kernel_size, stride) 
-Every conv is a same convolution. 
+Tuple is structured by (filters, kernel_size, stride)
+Every conv is a same convolution.
 List is structured by "B" indicating a residual block followed by the number of repeats
 "S" is for scale prediction block and computing the yolo loss
 "U" is for upsampling the feature map and concatenating with a previous layer
 """
+
 config = [
     (32, 3, 1),
     (64, 3, 2),
