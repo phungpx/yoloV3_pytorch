@@ -48,7 +48,6 @@ class Predictor:
         self.model.load_state_dict(state_dict=state_dict['state_dict'])
         self.model.eval().to(device)
 
-
     def __call__(self, images: List[np.ndarray]) -> List[Dict[str, Tensor]]:
         samples = self.preprocess(images)
         preds = self.process(samples)
