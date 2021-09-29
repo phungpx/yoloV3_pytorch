@@ -157,7 +157,8 @@ class Predictor:
 
             # wh: N x 3 x S x S x 2 (width, height of bboxes)
             # bw = pw * e ^ tw, bh = ph * e ^ th
-            bwh = (self.image_size * anchor) * torch.exp(pred[..., 3:5])
+            # bwh = (self.image_size * anchor) * torch.exp(pred[..., 3:5])
+            bwh = anchor * torch.exp(pred[..., 3:5])
 
             # boxes (x1 y1 x2 y2 type): N x (3 * S * S) x 4
             x1y1, x2y2 = bxy - bwh / 2, bxy + bwh / 2  # convert xywh to x1y1x2y2
