@@ -12,7 +12,7 @@ class Model(nn.Module):
         in_channels: int = 3,
         num_classes: int = 80,
         weight_path: Optional[str] = None,
-        anchors: List[List[Tuple[float, float]]] = None,
+        anchors: List[List[Tuple[float, float]]] = None,  # related to input_size (416 x 416)
         score_threshold: float = 0.5,
         iou_threshold: float = 0.5,
     ) -> None:
@@ -63,7 +63,7 @@ class Model(nn.Module):
 
     def predict(self, inputs):
         preds = self.forward(inputs)
-        image_size = inputs.shape[2]
+        input_size = inputs.shape[2]
         num_samples = preds[0].shape[0]
         batch_boxes, batch_labels, batch_scores = [], [], []
 
@@ -91,18 +91,18 @@ class Model(nn.Module):
 
             # xy: N x 3 x S x S x 2 (center of bboxes)
             # bx = sigmoid(tx) + cx, by = sigmoid(ty) + cy
-            bx = (torch.sigmoid(pred[..., 1]) + cx) * (image_size / S)
-            by = (torch.sigmoid(pred[..., 2]) + cy) * (image_size / S)
+            bx = (torch.sigmoid(pred[..., 1]) + cx) * (input_size / S)  # grid_size = input_size / S
+            by = (torch.sigmoid(pred[..., 2]) + cy) * (input_size / S)
             bxy = torch.stack([bx, by], dim=-1)
 
             # wh: N x 3 x S x S x 2 (width, height of bboxes)
             # bw = pw * e ^ tw, bh = ph * e ^ th
-            bwh = (image_size * anchor) * torch.exp(pred[..., 3:5])
+            bwh = anchor * torch.exp(pred[..., 3:5])
 
             # boxes (x1 y1 x2 y2 type): N x (3 * S * S) x 4
             x1y1, x2y2 = bxy - bwh / 2, bxy + bwh / 2  # convert xywh to x1y1x2y2
             boxes = torch.cat([x1y1, x2y2], dim=-1).reshape(num_samples, -1, 4)
-            boxes = torch.clamp(boxes, min=0, max=image_size)  # clip box within [0, image_size]
+            boxes = torch.clamp(boxes, min=0, max=input_size)  # clip box within [0, input_size]
 
             batch_boxes.append(boxes)
             batch_labels.append(labels)
