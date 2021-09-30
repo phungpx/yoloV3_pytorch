@@ -158,21 +158,34 @@ data:
       drop_last: False
 
 loss:
-  module: flame.core.loss.yolo_loss
-  class: YoloLoss
-  YoloLoss:
-    alpha: 0.25
-    gamma: 2.0
-    lamda: 50.0
-    device: '''cuda'''
+  module: flame.core.loss.yolov3_loss
+  class: YOLOv3Loss
+  YOLOv3Loss:
+    lambda_obj: 1
+    lambda_noobj: 10
+    lambda_bbox: 1
+    lambda_class: 1
+    input_size: 416
+    anchors: [
+      [[116, 90], [156, 198], [373, 326]],  # S = 13
+      [[30, 61], [62, 45], [59, 119]],      # S = 26
+      [[10, 13], [16, 30], [33, 23]],       # S = 52
+    ]
 
 model:
-  module: flame.core.model.darknet53
-  class: DarkNet53
-  DarkNet53:
-    pretrained_weight: '''checkpoint/pretrained_weights/.pth'''
+  module: flame.core.model.model
+  class: Model
+  Model:
+    weight_path: '''checkpoint/pretrained_weights/78.1map_0.2threshold_PASCAL.tar'''
     in_channels: 3
     num_classes: 20
+    iou_theshold: 0.2
+    score_threshold: 0.2
+    anchors: [
+      [[116, 90], [156, 198], [373, 326]],  # S = 13
+      [[30, 61], [62, 45], [59, 119]],      # S = 26
+      [[10, 13], [16, 30], [33, 23]],       # S = 52
+    ]
 
 optim:
   module: torch.optim
