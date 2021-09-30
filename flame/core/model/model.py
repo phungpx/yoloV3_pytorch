@@ -11,10 +11,10 @@ class Model(nn.Module):
         self,
         in_channels: int = 3,
         num_classes: int = 80,
-        weight_path: Optional[str] = None,
+        weight_path: Optional[str] = None,  # using for loading pretrained weight
         anchors: List[List[Tuple[float, float]]] = None,  # related to input_size (416 x 416)
-        score_threshold: float = 0.5,
-        iou_threshold: float = 0.5,
+        score_threshold: float = 0.5,  # using for removing objects with score lower than score_threshold
+        iou_threshold: float = 0.5,  # using for non-max suppression
     ) -> None:
         super(Model, self).__init__()
         self.model = YOLOv3(
@@ -22,6 +22,7 @@ class Model(nn.Module):
             num_classes=num_classes
         )
 
+        # use for inference mode
         self.anchors = anchors
         self.iou_threshold = iou_threshold
         self.score_threshold = score_threshold
@@ -62,24 +63,43 @@ class Model(nn.Module):
         return self.model(inputs)
 
     def predict(self, inputs):
-        preds = self.forward(inputs)
-        input_size = inputs.shape[2]
-        num_samples = preds[0].shape[0]
+        '''
+        Arg:
+            inputs: N x 3 x 416 x 416
+        Output:
+            output: dictionary[str, torch.Tensor]
+            [
+                {
+                    'boxes': torch.Tensor(int64),
+                    'label': torch.Tensor(int64),
+                    'score': torch.Tensor(float),
+                },
+                {
+                    .....
+                },
+                ....
+            ]
+        '''
+        preds = self.forward(inputs)  # Tuple[N x 3 x S x S x (5 + C)]
+        device = inputs.device
+        input_size = inputs.shape[2]  # 416
+        num_samples = preds[0].shape[0]  # N
+
         batch_boxes, batch_labels, batch_scores = [], [], []
 
         for i, pred in enumerate(preds):
-            S = pred.shape[2]  # 13, 26, 52
+            S = pred.shape[2]  # 13 or 26 or 52
 
             # anchor: 1 x 3 x 1 x 1 x 2
             anchor = torch.tensor(
                 self.anchors[i],
-                device=self.device,
+                device=device,
                 dtype=torch.float
             )  # anchor: 3 x 2
             anchor = anchor.reshape(1, 3, 1, 1, 2)
 
             # cx, cy: N x 3 x S x S
-            cx = torch.arange(S).repeat(num_samples, 3, S, 1).to(self.device)
+            cx = torch.arange(S).repeat(num_samples, 3, S, 1).to(device)
             cy = cx.permute(0, 1, 3, 2)
 
             # N x 3 x S x S -> reshape: N x (3 * S * S)
@@ -92,7 +112,7 @@ class Model(nn.Module):
             # xy: N x 3 x S x S x 2 (center of bboxes)
             # bx = sigmoid(tx) + cx, by = sigmoid(ty) + cy
             bx = (torch.sigmoid(pred[..., 1]) + cx) * (input_size / S)  # grid_size = input_size / S
-            by = (torch.sigmoid(pred[..., 2]) + cy) * (input_size / S)
+            by = (torch.sigmoid(pred[..., 2]) + cy) * (input_size / S)  # grid_size = input_size / S
             bxy = torch.stack([bx, by], dim=-1)
 
             # wh: N x 3 x S x S x 2 (width, height of bboxes)
