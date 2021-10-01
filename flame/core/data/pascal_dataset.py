@@ -92,7 +92,11 @@ class PascalDataset(Dataset):
         _, label_info = self._get_label_info(label_path)
 
         image = cv2.imread(str(image_path))
-        image_info = [str(image_path), image.shape[1::-1]]
+        image_info = {
+            'image_id': idx,
+            'image_path': str(image_path),
+            'image_size': image.shape[1::-1]
+        }
 
         image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
         boxes = [label['bbox'] for label in label_info]
