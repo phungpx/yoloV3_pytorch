@@ -9,12 +9,12 @@ data:
         PascalDataset:
           imsize: 416
           VOC2012:
-            image_dir: '''dataset/PASCALVOC2012/JPEGImages/'''
-            label_dir: '''dataset/PASCALVOC2012/Annotations/'''
-            txt_path: '''dataset/PASCALVOC2012/ImageSets/Segmentation/val.txt'''
+            image_dir: '''../efficient_det_pytorch/dataset/PASCALVOC2012/JPEGImages/'''
+            label_dir: '''../efficient_det_pytorch/dataset/PASCALVOC2012/Annotations/'''
+            txt_path: '''../efficient_det_pytorch/dataset/PASCALVOC2012/ImageSets/Segmentation/val.txt'''
           VOC2007:
-            image_dir: '''dataset/PASCALVOC2007/VOCtest_06-Nov-2007/VOCdevkit/VOC2007/JPEGImages/'''
-            label_dir: '''dataset/PASCALVOC2007/VOCtest_06-Nov-2007/VOCdevkit/VOC2007/Annotations/'''
+            image_dir: '''../efficient_det_pytorch/dataset/PASCALVOC2007/VOCtest_06-Nov-2007/VOCdevkit/VOC2007/JPEGImages/'''
+            label_dir: '''../efficient_det_pytorch/dataset/PASCALVOC2007/VOCtest_06-Nov-2007/VOCdevkit/VOC2007/Annotations/'''
           image_extent: '''.jpg'''
           label_extent: '''.xml'''
           mean: [0.485, 0.456, 0.406]
@@ -150,7 +150,7 @@ predictor:
     output_transform: 'lambda x: (x[0], x[-1])'
 
 engine:
-  module: flame.core.engine.tester
+  module: flame.core.engine.evaluator
   class: Evaluator
   Evaluator:
     dataset: config['data']['test']
