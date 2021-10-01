@@ -1,14 +1,9 @@
 import torch
-import torchvision
 
 from ignite import engine as e
 from abc import abstractmethod
 
 from ...module import Module
-# from torch.cuda.amp import autocast, GradScaler
-
-
-torch.backends.cudnn.benchmark = True
 
 
 class Engine(Module):
@@ -58,11 +53,16 @@ class Trainer(Engine):
         self.model.train()
         self.optimizer.zero_grad()
         params = [param.to(self.device) if torch.is_tensor(param) else param for param in batch]
-        params[1] = [param.to(self.device) for param in params[1]]
-        params[0] = self.model(params[0])
-        loss = loss.sum()
+        targets = [param.to(self.device) for param in params[1]]  # Tuple of target Tensors
+        preds = self.model(params[0])  # Tuple of prediction Tensors
+
+        losses = self.loss(preds=preds, targets=targets)
+
+        loss = torch.sum(list(losses.values()))
         loss.backward()
+
         self.optimizer.step()
+
         return loss.item()
 
 
@@ -82,5 +82,8 @@ class Evaluator(Engine):
     def _update(self, engine, batch):
         self.model.eval()
         with torch.no_grad():
-            batch_samples, tuple_batch_targets, batch_infos = batch
-            batch_size = batch_samples.shape[0]
+            params = [param.to(self.device) if torch.is_tensor(param) else param for param in batch]
+            params[1] = [param.to(self.device) for param in params[1]]  # Tuple of target Tensors
+            params[0] = self.model(params[0])  # Tuple of prediction Tensors
+
+            return params

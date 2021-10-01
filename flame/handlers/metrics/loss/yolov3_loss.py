@@ -1,10 +1,8 @@
 import torch
 import torch.nn as nn
 
-from . import loss
 
-
-class YOLOv3Loss(loss.LossBase):
+class YOLOv3Loss(nn.Module):
     def __init__(
         self,
         lambda_obj: int = 1,
