@@ -9,12 +9,12 @@ data:
         PascalDataset:
           imsize: 416
           VOC2012:
-            image_dir: '''dataset/PASCALVOC2012/JPEGImages/'''
-            label_dir: '''dataset/PASCALVOC2012/Annotations/'''
-            txt_path: '''dataset/PASCALVOC2012/ImageSets/Segmentation/train.txt'''
+            image_dir: '''../efficient_det_pytorch/dataset/PASCALVOC2012/JPEGImages/'''
+            label_dir: '''../efficient_det_pytorch/dataset/PASCALVOC2012/Annotations/'''
+            txt_path: '''../efficient_det_pytorch/dataset/PASCALVOC2012/ImageSets/Segmentation/train.txt'''
           VOC2007:
-            image_dir: '''dataset/PASCALVOC2007/VOCtrainval_06-Nov-2007/VOCdevkit/VOC2007/JPEGImages/'''
-            label_dir: '''dataset/PASCALVOC2007/VOCtrainval_06-Nov-2007/VOCdevkit/VOC2007/Annotations/'''
+            image_dir: '''../efficient_det_pytorch/dataset/PASCALVOC2007/VOCtrainval_06-Nov-2007/VOCdevkit/VOC2007/JPEGImages/'''
+            label_dir: '''../efficient_det_pytorch/dataset/PASCALVOC2007/VOCtrainval_06-Nov-2007/VOCdevkit/VOC2007/Annotations/'''
           image_extent: '''.jpg'''
           label_extent: '''.xml'''
           mean: [0.485, 0.456, 0.406]
@@ -63,12 +63,12 @@ data:
         PascalDataset:
           imsize: 416
           VOC2012:
-            image_dir: '''dataset/PASCALVOC2012/JPEGImages/'''
-            label_dir: '''dataset/PASCALVOC2012/Annotations/'''
-            txt_path: '''dataset/PASCALVOC2012/ImageSets/Segmentation/train.txt'''
+            image_dir: '''../efficient_det_pytorch/dataset/PASCALVOC2012/JPEGImages/'''
+            label_dir: '''../efficient_det_pytorch/dataset/PASCALVOC2012/Annotations/'''
+            txt_path: '''../efficient_det_pytorch/dataset/PASCALVOC2012/ImageSets/Segmentation/train.txt'''
           VOC2007:
-            image_dir: '''dataset/PASCALVOC2007/VOCtrainval_06-Nov-2007/VOCdevkit/VOC2007/JPEGImages/'''
-            label_dir: '''dataset/PASCALVOC2007/VOCtrainval_06-Nov-2007/VOCdevkit/VOC2007/Annotations/'''
+            image_dir: '''../efficient_det_pytorch/dataset/PASCALVOC2007/VOCtrainval_06-Nov-2007/VOCdevkit/VOC2007/JPEGImages/'''
+            label_dir: '''../efficient_det_pytorch/dataset/PASCALVOC2007/VOCtrainval_06-Nov-2007/VOCdevkit/VOC2007/Annotations/'''
           image_extent: '''.jpg'''
           label_extent: '''.xml'''
           mean: [0.485, 0.456, 0.406]
@@ -115,12 +115,12 @@ data:
         PascalDataset:
           imsize: 416
           VOC2012:
-            image_dir: '''dataset/PASCALVOC2012/JPEGImages/'''
-            label_dir: '''dataset/PASCALVOC2012/Annotations/'''
-            txt_path: '''dataset/PASCALVOC2012/ImageSets/Segmentation/val.txt'''
+            image_dir: '''../efficient_det_pytorch/dataset/PASCALVOC2012/JPEGImages/'''
+            label_dir: '''../efficient_det_pytorch/dataset/PASCALVOC2012/Annotations/'''
+            txt_path: '''../efficient_det_pytorch/dataset/PASCALVOC2012/ImageSets/Segmentation/val.txt'''
           VOC2007:
-            image_dir: '''dataset/PASCALVOC2007/VOCtest_06-Nov-2007/VOCdevkit/VOC2007/JPEGImages/'''
-            label_dir: '''dataset/PASCALVOC2007/VOCtest_06-Nov-2007/VOCdevkit/VOC2007/Annotations/'''
+            image_dir: '''../efficient_det_pytorch/dataset/PASCALVOC2007/VOCtest_06-Nov-2007/VOCdevkit/VOC2007/JPEGImages/'''
+            label_dir: '''../efficient_det_pytorch/dataset/PASCALVOC2007/VOCtest_06-Nov-2007/VOCdevkit/VOC2007/Annotations/'''
           image_extent: '''.jpg'''
           label_extent: '''.xml'''
           mean: [0.485, 0.456, 0.406]
@@ -189,12 +189,11 @@ model:
 
 optim:
   module: torch.optim
-  class: SGD
-  SGD:
+  class: Adam
+  Adam:
     params: config['model'].parameters()
-    lr: 0.08
-    momentum: 0.9
-    nesterov: True
+    lr: 0.00001
+    weight_decay: 0.0001
 
 train_evaluator:
   module: flame.handlers.metric_evaluator
