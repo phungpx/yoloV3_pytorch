@@ -220,14 +220,20 @@ metrics:
         class: Loss
         Loss:
           loss_fn:
-            module: flame.handlers.metrics.loss.loss
-            class: YoloLoss
-            YoloLoss:
-              alpha: 0.25
-              gamma: 2.0
-              lamda: 50.0
-              device: '''cuda'''
-          output_transform: 'lambda x: (x[0], x[1], x[2], x[3])'
+            module: flame.handlers.metrics.loss.yolov3_loss
+            class: YOLOv3Loss
+            YOLOv3Loss:
+              lambda_obj: 1
+              lambda_noobj: 10
+              lambda_bbox: 1
+              lambda_class: 1
+              input_size: 416
+              anchors: [
+                [[116, 90], [156, 198], [373, 326]],  # S = 13
+                [[30, 61], [62, 45], [59, 119]],      # S = 26
+                [[10, 13], [16, 30], [33, 23]],       # S = 52
+              ]
+          output_transform: 'lambda x: (x[0], x[1])'
     attach_to:
       train_evaluator: '''train'''
       valid_evaluator: '''valid'''
@@ -307,8 +313,6 @@ engine:
     dataset: config['data']['train']
     device: '''cuda'''
     max_epochs: 10000
-    max_norm: 0.1
-    norm_type: 2
 
 extralibs:
   torch: torch
