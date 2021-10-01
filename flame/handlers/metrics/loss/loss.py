@@ -12,13 +12,15 @@ class Loss(Metric):
         self._num_examples = 0
 
     def update(self, output):
-        cls_loss, reg_loss = self._loss_fn(*output)
-        loss = cls_loss.mean() + reg_loss.mean()
+        preds, targets = output
+        assert preds[0].shape[0] == targets[0].shape[0], 'the number of samples in predictions and targets must be equal.'
+        losses = self._loss_fn(preds, targets)
+        loss = losses[13] + losses[26] + losses[52]
 
         if len(loss.shape) != 0:
             raise ValueError('loss_fn did not return the average loss.')
 
-        N = output[0].shape[0]
+        N = preds[0].shape[0]
         self._sum += loss.item() * N
         self._num_examples += N
 

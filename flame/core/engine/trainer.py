@@ -56,9 +56,9 @@ class Trainer(Engine):
         targets = [param.to(self.device) for param in params[1]]  # Tuple of target Tensors
         preds = self.model(params[0])  # Tuple of prediction Tensors
 
-        losses = self.loss(preds=preds, targets=targets)
+        losses = self.loss(preds, targets)
 
-        loss = torch.sum(list(losses.values()))
+        loss = losses[13] + losses[26] + losses[52]
         loss.backward()
 
         self.optimizer.step()

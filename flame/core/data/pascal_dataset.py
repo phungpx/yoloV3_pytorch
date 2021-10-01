@@ -35,8 +35,10 @@ class PascalDataset(Dataset):
         self.mean = torch.tensor(mean, dtype=torch.float).view(3, 1, 1)
         self.pad_to_square = iaa.PadToSquare(position='right-bottom')
         self.anchors = torch.tensor(
-            anchors[0] + anchors[1] + anchors[2]
+            data=anchors[0] + anchors[1] + anchors[2],
+            dtype=torch.float32,
         )  # 9 x 2, 3 anchors for each scale output tensor
+        self.anchors /= imsize
         self.num_anchors = self.anchors.shape[0]  # 9
         self.num_anchors_per_scale = self.num_anchors // 3  # 3
         self.IGNORE_IOU_THRESHOLD = 0.5
