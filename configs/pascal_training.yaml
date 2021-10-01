@@ -43,10 +43,11 @@ data:
           transforms:
             - iaa.Fliplr(p=0.5)
           S: [13, 26, 52]  # image_size // 32, image_size // 16, image_size // 8
-          C: 20
-          anchors: [[[0.28, 0.22], [0.38, 0.48], [0.9, 0.78]],  # S = 13
-                    [[0.07, 0.15], [0.15, 0.11], [0.14, 0.29]],  # S = 26
-                    [[0.02, 0.03], [0.04, 0.07], [0.08, 0.06]]]  # S = 52
+          anchors: [
+            [[116, 90], [156, 198], [373, 326]],  # S = 13
+            [[30, 61], [62, 45], [59, 119]],      # S = 26
+            [[10, 13], [16, 30], [33, 23]],       # S = 52
+          ]
       batch_size: 32
       shuffle: True
       pin_memory: True
@@ -95,10 +96,11 @@ data:
             train: 18
             tvmonitor: 19
           S: [13, 26, 52]  # image_size // 32, image_size // 16, image_size // 8
-          C: 20
-          anchors: [[[0.28, 0.22], [0.38, 0.48], [0.9, 0.78]],  # S = 13
-                    [[0.07, 0.15], [0.15, 0.11], [0.14, 0.29]],  # S = 26
-                    [[0.02, 0.03], [0.04, 0.07], [0.08, 0.06]]]  # S = 52
+          anchors: [
+            [[116, 90], [156, 198], [373, 326]],  # S = 13
+            [[30, 61], [62, 45], [59, 119]],      # S = 26
+            [[10, 13], [16, 30], [33, 23]],       # S = 52
+          ]
       batch_size: 32
       shuffle: False
       pin_memory: True
@@ -147,10 +149,11 @@ data:
             train: 18
             tvmonitor: 19
           S: [13, 26, 52]  # image_size // 32, image_size // 16, image_size // 8
-          C: 20
-          anchors: [[[0.28, 0.22], [0.38, 0.48], [0.9, 0.78]],  # S = 13
-                    [[0.07, 0.15], [0.15, 0.11], [0.14, 0.29]],  # S = 26
-                    [[0.02, 0.03], [0.04, 0.07], [0.08, 0.06]]]  # S = 52
+          anchors: [
+            [[116, 90], [156, 198], [373, 326]],  # S = 13
+            [[30, 61], [62, 45], [59, 119]],      # S = 26
+            [[10, 13], [16, 30], [33, 23]],       # S = 52
+          ]
       batch_size: 32
       shuffle: False
       pin_memory: True
@@ -176,10 +179,10 @@ model:
   module: flame.core.model.model
   class: Model
   Model:
-    weight_path: '''checkpoint/pretrained_weights/78.1map_0.2threshold_PASCAL.tar'''
+    weight_path: '''checkpoint/pretrained_weight/78.1map_0.2threshold_PASCAL.tar'''
     in_channels: 3
     num_classes: 20
-    iou_theshold: 0.2
+    iou_threshold: 0.2
     score_threshold: 0.2
     anchors: [
       [[116, 90], [156, 198], [373, 326]],  # S = 13
@@ -228,10 +231,10 @@ metrics:
               lambda_class: 1
               input_size: 416
               anchors: [
-                [[116, 90], [156, 198], [373, 326]],  # S = 13
-                [[30, 61], [62, 45], [59, 119]],      # S = 26
-                [[10, 13], [16, 30], [33, 23]],       # S = 52
-              ]
+            [[116, 90], [156, 198], [373, 326]],  # S = 13
+            [[30, 61], [62, 45], [59, 119]],      # S = 26
+            [[10, 13], [16, 30], [33, 23]],       # S = 52
+          ]
           output_transform: 'lambda x: (x[0], x[1])'
     attach_to:
       train_evaluator: '''train'''

@@ -1,6 +1,8 @@
 import torch
 import torch.nn as nn
 
+from typing import List, Tuple, Dict
+
 from . import loss
 
 
@@ -73,14 +75,14 @@ class YOLOv3Loss(loss.LossBase):
         # check where obj and noobj (ignore if target == -1)
         obj = target[..., 0] == 1  # Iobj_i
         noobj = target[..., 0] == 0  # Inoobj_i
-        anchors = anchors.reshape(1, 3, 1, 1, 2)  # 1 x 3 x 1 x 1 x 2
+        anchor = anchor.reshape(1, 3, 1, 1, 2)  # 1 x 3 x 1 x 1 x 2
 
         # no object loss
         noobj_loss = nn.BCEWithLogitsLoss()(pred[..., 0:1][noobj], target[..., 0:1][noobj])
 
         # object loss
         bxy = torch.sigmoid(pred[..., 1:3])
-        bwh = torch.exp(pred[..., 3:5]) * anchors[..., 1:3]
+        bwh = torch.exp(pred[..., 3:5]) * anchor[..., 1:3]
         pred_boxes = torch.cat([bxy, bwh], dim=-1).to(device)
         true_boxes = target[..., 1:5]
         ious = self.compute_iou(pred_boxes[obj], true_boxes[obj])
@@ -89,7 +91,7 @@ class YOLOv3Loss(loss.LossBase):
 
         # coordinate loss
         pred[..., 1:3] = torch.sigmoid(pred[..., 1:3])  # x,y coordinates
-        target[..., 3:5] = torch.log(1e-16 + target[..., 3:5] / anchors)  # width, height coordinates
+        target[..., 3:5] = torch.log(1e-16 + target[..., 3:5] / anchor)  # width, height coordinates
         bbox_loss = nn.MSELoss()(pred[..., 1:5][obj], target[..., 1:5][obj])
 
         # class loss
