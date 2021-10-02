@@ -52,9 +52,9 @@ class Trainer(Engine):
     def _update(self, engine, batch):
         self.model.train()
         self.optimizer.zero_grad()
-        params = [param.to(self.device) if torch.is_tensor(param) else param for param in batch]
-        targets = [param.to(self.device) for param in params[1]]  # Tuple of target Tensors
-        preds = self.model(params[0])  # Tuple of prediction Tensors
+        samples = torch.stack(batch[0], dim=0).to(self.device)
+        targets = [torch.stack(target, dim=0).to(self.device) for target in zip(*batch[1])]  # Tuple of target Tensors
+        preds = self.model(samples)  # Tuple of prediction Tensors
 
         losses = self.loss(preds, targets)
 
@@ -82,8 +82,8 @@ class Evaluator(Engine):
     def _update(self, engine, batch):
         self.model.eval()
         with torch.no_grad():
-            params = [param.to(self.device) if torch.is_tensor(param) else param for param in batch]
-            params[1] = [param.to(self.device) for param in params[1]]  # Tuple of target Tensors
-            params[0] = self.model(params[0])  # Tuple of prediction Tensors
+            batch[0] = torch.stack(batch[0], dim=0).to(self.device)
+            batch[1] = [torch.stack(target, dim=0).to(self.device) for target in zip(*batch[1])]  # Tuple of target Tensors
+            batch[0] = self.model(batch[0])  # Tuple of prediction Tensors
 
-            return params
+            return batch

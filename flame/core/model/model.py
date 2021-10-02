@@ -138,7 +138,9 @@ class Model(nn.Module):
             score_indices = batch_scores[sample_id, :] > self.score_threshold
 
             if score_indices.sum() == 0:
-                outputs.append({'boxes': None, 'labels': None, 'scores': None})
+                outputs.append({'boxes': torch.FloatTensor([[0, 0, 1, 1]]),
+                                'labels': torch.FloatTensor([-1]),
+                                'scores': torch.FloatTensor([0])})
 
                 continue
 
@@ -162,6 +164,8 @@ class Model(nn.Module):
                     }
                 )
             else:
-                outputs.append({'boxes': None, 'labels': None, 'scores': None})
+                outputs.append({'boxes': torch.FloatTensor([[0, 0, 1, 1]]),
+                                'labels': torch.FloatTensor([-1]),
+                                'scores': torch.FloatTensor([0])})
 
         return outputs

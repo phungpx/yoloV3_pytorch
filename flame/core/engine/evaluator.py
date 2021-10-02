@@ -36,57 +36,9 @@ class Evaluator(Module):
     def _update(self, engine, batch):
         self.model.eval()
         with torch.no_grad():
-            params = [param.to(self.device) if torch.is_tensor(param) else param for param in batch]
-            predictions = self.model.inference(params[0])
-            groundtruths = self.get_groundtruths(
-                samples=params[0], targets=params[1], image_info=params[2]
-            )
+            samples = torch.stack(batch[0], dim=0).to(self.device)
+            image_infos = batch[2]
+            targets = batch[3]
+            preds = self.model.predict(samples)
 
-            return predictions, groundtruths
-
-    def get_groundtruths(
-        self,
-        samples: torch.Tensor,  # N x 3 x 416 x 416
-        targets: Tuple[torch.Tensor],
-        image_info: dict
-    ) -> List[Dict[str, torch.Tensor]]:
-
-        groundtruths = []
-
-        s1_targets = targets[0]  # N x 3 x 13 x 13 x (5 + C)
-        # s2_targets = targets[1]  # N x 3 x 26 x 26 x (5 + C)
-        # s3_targets = targets[2]  # N x 3 x 52 x 52 x (5 + C)
-
-        num_samples = targets[0].shape[0]  # N
-        device = samples.device
-
-        for i in range(num_samples):
-            grid_size = samples.shape[2] / target.shape[2]
-
-            indices = target[:, :, :, 0] == 1  # 3 x 13 x 13 x 6
-            boxes = target[indices]  # n_boxes x 6
-
-            x = (target[..., 1:2] == boxes[:, 1]).nonzero(as_tuple=True)[2]  # columns
-            y = (target[..., 2:3] == boxes[:, 2]).nonzero(as_tuple=True)[1]  # rows
-
-            boxes[:, 1] += x
-            boxes[:, 2] += y
-            boxes[:, 1:5] *= grid_size
-            boxes[:, [1, 2]] -= boxes[:, [3, 4]] / 2  # x1, y1 = x - w / 2, y - h / 2
-            boxes[:, [3, 4]] += boxes[:, [1, 2]]  # x2 = x1 + w, y2 = y1 + h
-
-            groundtruth = {
-                'image_id': torch.tensor(
-                    [image_info['image_id'][i].item()], dtype=torch.int64, device=device
-                ),
-                'labels': torch.tensor(
-                    boxes[:, 5], dtype=torch.int64, device=device
-                ),
-                'boxes': torch.tensor(
-                    boxes[:, 1:5], dtype=torch.float32, device=device
-                ),
-            }
-
-            groundtruths.append(groundtruth)
-
-        return groundtruths
+            return preds, targets, image_infos

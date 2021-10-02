@@ -45,7 +45,7 @@ class Predictor:
 
         self.model = utils.create_instance(model)
         state_dict = torch.load(f=weight_path, map_location=device)
-        self.model.load_state_dict(state_dict=state_dict['state_dict'])
+        self.model.load_state_dict(state_dict=state_dict)
         self.model.eval().to(device)
 
     def __call__(self, images: List[np.ndarray]) -> List[Dict[str, Tensor]]:
