@@ -7,18 +7,18 @@ Predictor:
     YOLOv3:
       in_channels: 3
       num_classes: 20
-  weight_path: '''../checkpoint/pretrained_weight/78.1map_0.2threshold_PASCAL.tar'''
+  weight_path: '''../checkpoint/PASCAL/2110011416/best_model_30_loss=-1.4638.pt'''
   batch_size: 1
   image_size: 416
-  mean: '(0., 0., 0.)'
-  std: '(1., 1., 1.)'
+  mean: [0.485, 0.456, 0.406]
+  std: [0.229, 0.224, 0.225]
   anchors: [
     [[116, 90], [156, 198], [373, 326]],  # S = 13
     [[30, 61], [62, 45], [59, 119]],      # S = 26
     [[10, 13], [16, 30], [33, 23]],       # S = 52
   ]
-  score_threshold: 0.7
-  iou_threshold: 0.4
+  score_threshold: 0.4
+  iou_threshold: 0.5
   classes:
     aeroplane: 0
     bicycle: 1

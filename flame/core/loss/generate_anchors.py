@@ -26,10 +26,11 @@ class AnchorGeneration(nn.Module):
         for scale in self.scales:
             grid_size_x, grid_size_y = (self.input_size[0] / scale, self.input_size[1] / scale)
 
-            anchor_size = torch.tensor(self.anchor_sizes[scale], dtype=torch.float, device=device)  # 3 x 2
+            # num_anchors_per_scale x 2
+            anchor_size = torch.tensor(self.anchor_sizes[scale], dtype=torch.float, device=device)
 
-            w = anchor_size[:, 0].view(3, 1, 1)  # 3 x 1 x 1
-            h = anchor_size[:, 1].view(3, 1, 1)  # 3 x 1 x 1
+            w = anchor_size[:, 0].view(anchor_size.shape[0], 1, 1)  # num_anchors_per_scale x 1 x 1
+            h = anchor_size[:, 1].view(anchor_size.shape[0], 1, 1)  # num_anchors_per_scale x 1 x 1
 
             # all center of each anchor boxes
             x = torch.arange(start=grid_size_x / 2, end=image_size[0], step=grid_size_x)  # scale
@@ -39,10 +40,11 @@ class AnchorGeneration(nn.Module):
             cx, cy = cx.unsqueeze(dim=0), cy.unsqueeze(dim=0)  # 1 x scale x scale
 
             # all coordinates of anchor boxes at scale
-            x1, y1 = cx - w / 2, cy - h / 2  # 3 x scale x scale
-            x2, y2 = cx + w / 2, cy + h / 2  # 3 x scale x scale
+            x1, y1 = cx - w / 2, cy - h / 2  # num_anchors_per_scale x scale x scale
+            x2, y2 = cx + w / 2, cy + h / 2  # num_anchors_per_scale x scale x scale
 
-            anchor_boxes[scale] = torch.stack([x1, y1, x2, y2], dim=3).unsqueeze(dim=0)  # 1 x 3 x scale x scale x 4
+            # num_anchors_per_scale x scale x scale x 4
+            anchor_boxes[scale] = torch.stack([x1, y1, x2, y2], dim=3)
 
         return anchor_boxes
 

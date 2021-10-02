@@ -94,11 +94,7 @@ class PascalDataset(Dataset):
         _, label_info = self._get_label_info(label_path)
 
         image = cv2.imread(str(image_path))
-        image_info = {
-            'image_id': idx,
-            'image_path': str(image_path),
-            'image_size': image.shape[1::-1]
-        }
+        image_info = [str(image_path), image.shape[1::-1]]
 
         image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
         boxes = [label['bbox'] for label in label_info]
@@ -120,6 +116,26 @@ class PascalDataset(Dataset):
         image, bbs = self.pad_to_square(image=image, bounding_boxes=bbs)
         image, bbs = iaa.Resize(size=self.imsize)(image=image, bounding_boxes=bbs)
         bbs = bbs.on(image)
+
+        # get boxes_info
+        boxes = [[bb.x1, bb.y1, bb.x2, bb.y2] for bb in bbs.bounding_boxes]
+        labels = [bb.label for bb in bbs.bounding_boxes]
+
+        # Convert to Torch Tensor
+        iscrowd = torch.zeros((len(labels),), dtype=torch.int64)  # suppose all instances are not crowd
+        labels = torch.tensor(labels, dtype=torch.int64)
+        boxes = torch.tensor(boxes, dtype=torch.float32)
+        image_id = torch.tensor([idx], dtype=torch.int64)
+        area = (boxes[:, 3] - boxes[:, 1]) * (boxes[:, 2] - boxes[:, 0])
+
+        # Target
+        boxes_info = {
+            'image_id': image_id,
+            'boxes': boxes,
+            'labels': labels,
+            'area': area,
+            'iscrowd': iscrowd,
+        }
 
         # convert from Bouding Box Object to boxes (x1, y1, x2, y2, label)
         bboxes = [[bb.x1, bb.y1, bb.x2, bb.y2, bb.label] for bb in bbs.bounding_boxes]
@@ -163,7 +179,7 @@ class PascalDataset(Dataset):
         sample = sample.permute(2, 0, 1).contiguous()
         sample = (sample.float().div(255.) - self.mean) / self.std
 
-        return sample, tuple(targets), image_info
+        return sample, tuple(targets), image_info, boxes_info
 
     def _dcxdcydhdw2xyxy(self, bboxes, image_height, image_width):
         '''
