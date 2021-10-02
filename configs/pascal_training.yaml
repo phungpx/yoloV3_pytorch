@@ -44,9 +44,9 @@ data:
             - iaa.Fliplr(p=0.5)
           S: [13, 26, 52]  # image_size // 32, image_size // 16, image_size // 8
           anchors: [
-            [[116, 90], [156, 198], [373, 326]],  # S = 13
-            [[30, 61], [62, 45], [59, 119]],      # S = 26
-            [[10, 13], [16, 30], [33, 23]],       # S = 52
+            [[116.48, 91.52], [158.08, 199.68], [374.4, 324.48]],  # S = 13
+            [[29.12, 62.4 ], [62.4, 45.76], [58.24, 120.64]],  # S = 26
+            [[8.32, 12.48], [16.64, 29.12], [33.28, 24.96]],  # S = 52
           ]
       batch_size: 32
       shuffle: True
@@ -98,9 +98,9 @@ data:
             tvmonitor: 19
           S: [13, 26, 52]  # image_size // 32, image_size // 16, image_size // 8
           anchors: [
-            [[116, 90], [156, 198], [373, 326]],  # S = 13
-            [[30, 61], [62, 45], [59, 119]],      # S = 26
-            [[10, 13], [16, 30], [33, 23]],       # S = 52
+            [[116.48, 91.52], [158.08, 199.68], [374.4, 324.48]],  # S = 13
+            [[29.12, 62.4 ], [62.4, 45.76], [58.24, 120.64]],  # S = 26
+            [[8.32, 12.48], [16.64, 29.12], [33.28, 24.96]],  # S = 52
           ]
       batch_size: 32
       shuffle: False
@@ -152,9 +152,9 @@ data:
             tvmonitor: 19
           S: [13, 26, 52]  # image_size // 32, image_size // 16, image_size // 8
           anchors: [
-            [[116, 90], [156, 198], [373, 326]],  # S = 13
-            [[30, 61], [62, 45], [59, 119]],      # S = 26
-            [[10, 13], [16, 30], [33, 23]],       # S = 52
+            [[116.48, 91.52], [158.08, 199.68], [374.4, 324.48]],  # S = 13
+            [[29.12, 62.4 ], [62.4, 45.76], [58.24, 120.64]],  # S = 26
+            [[8.32, 12.48], [16.64, 29.12], [33.28, 24.96]],  # S = 52
           ]
       batch_size: 32
       shuffle: False
@@ -173,33 +173,41 @@ loss:
     lambda_class: 1
     input_size: 416
     anchors: [
-      [[116, 90], [156, 198], [373, 326]],  # S = 13
-      [[30, 61], [62, 45], [59, 119]],      # S = 26
-      [[10, 13], [16, 30], [33, 23]],       # S = 52
+      [[116.48, 91.52], [158.08, 199.68], [374.4, 324.48]],  # S = 13
+      [[29.12, 62.4 ], [62.4, 45.76], [58.24, 120.64]],  # S = 26
+      [[8.32, 12.48], [16.64, 29.12], [33.28, 24.96]],  # S = 52
     ]
 
 model:
   module: flame.core.model.model
   class: Model
   Model:
-    weight_path: '''checkpoint/pretrained_weight/78.1map_0.2threshold_PASCAL.tar'''
+    # weight_path: '''checkpoint/pretrained_weight/78.1map_0.2threshold_PASCAL.tar'''
     in_channels: 3
     num_classes: 20
-    iou_threshold: 0.2
-    score_threshold: 0.2
-    anchors: [
-      [[116, 90], [156, 198], [373, 326]],  # S = 13
-      [[30, 61], [62, 45], [59, 119]],      # S = 26
-      [[10, 13], [16, 30], [33, 23]],       # S = 52
-    ]
+    # iou_threshold: 0.2
+    # score_threshold: 0.2
+    # anchors: [
+    #   [[116.48, 91.52], [158.08, 199.68], [374.4, 324.48]],  # S = 13
+    #   [[29.12, 62.4 ], [62.4, 45.76], [58.24, 120.64]],  # S = 26
+    #   [[8.32, 12.48], [16.64, 29.12], [33.28, 24.96]],  # S = 52
+    # ]
 
+# optim:
+#   module: torch.optim
+#   class: Adam
+#   Adam:
+#     params: config['model'].parameters()
+#     lr: 0.00001
+#     weight_decay: 0.0001
 optim:
   module: torch.optim
-  class: Adam
-  Adam:
+  class: SGD
+  SGD:
     params: config['model'].parameters()
-    lr: 0.00001
-    weight_decay: 0.0001
+    lr: 0.08
+    momentum: 0.9
+    nesterov: True
 
 train_evaluator:
   module: flame.handlers.metric_evaluator
@@ -234,9 +242,9 @@ metrics:
               lambda_class: 1
               input_size: 416
               anchors: [
-                [[116, 90], [156, 198], [373, 326]],  # S = 13
-                [[30, 61], [62, 45], [59, 119]],      # S = 26
-                [[10, 13], [16, 30], [33, 23]],       # S = 52
+                [[116.48, 91.52], [158.08, 199.68], [374.4, 324.48]],  # S = 13
+                [[29.12, 62.4 ], [62.4, 45.76], [58.24, 120.64]],  # S = 26
+                [[8.32, 12.48], [16.64, 29.12], [33.28, 24.96]],  # S = 52
               ]
           output_transform: 'lambda x: (x[0], x[1])'
     attach_to:
@@ -259,8 +267,8 @@ checkpoint_loader:
   module: flame.handlers.checkpoint
   class: CheckpointLoader
   CheckpointLoader:
-    checkpoint_path: ''''''
-    mode: '''train'''
+    checkpoint_path: '''checkpoint/PASCAL/2110011416/best_model_30_loss=-1.4638.pt'''
+    mode: '''retrain'''
 
 terminate_on_nan:
   module: flame.handlers.terminate_on_nan
@@ -273,7 +281,7 @@ lr_scheduler:
     score_name: '''loss'''
     evaluator_name: '''valid_evaluator'''
     mode: '''min'''
-    patience: 3
+    patience: 5
     verbose: True
 
 early_stopping:
@@ -283,7 +291,7 @@ early_stopping:
     score_name: '''loss'''
     evaluator_name: '''valid_evaluator'''
     mode: '''min'''
-    patience: 30
+    patience: 10
 
 best_saver:
   module: flame.handlers.checkpoint
