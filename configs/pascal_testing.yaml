@@ -59,7 +59,7 @@ model:
   Model:
     in_channels: 3
     num_classes: 20
-    iou_threshold: 0.5
+    iou_threshold: 0.2
     score_threshold: 0.2
     anchors: [
       [[116.48, 91.52], [158.08, 199.68], [374.4, 324.48]],  # S = 13
@@ -118,7 +118,7 @@ checkpoint_loader:
   module: flame.handlers.checkpoint
   class: CheckpointLoader
   CheckpointLoader:
-    checkpoint_path: '''checkpoint/PASCAL/2110011416/best_model_30_loss=-1.4638.pt'''
+    checkpoint_path: '''checkpoint/PASCAL/2110022337/best_model_21_loss=-1.4120.pt'''
     mode: '''test'''
 
 predictor:
@@ -126,7 +126,7 @@ predictor:
   class: RegionPredictor
   RegionPredictor:
     evaluator_name: '''engine'''
-    output_dir: '''checkpoint/PASCAL/2110011416/best_model_30_loss=-1.4638/valid/'''
+    output_dir: '''checkpoint/PASCAL/2110022337/best_model_21_loss=-1.4120/valid/'''
     imsize: 416
     classes:
       aeroplane: [[128, 0, 0], 0]  # color, class_idx, area_threshold
