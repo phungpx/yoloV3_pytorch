@@ -28,7 +28,7 @@ class Model(nn.Module):
         self.score_threshold = score_threshold
 
         if weight_path is not None:
-            state_dict = torch.load(f=weight_path, map_location='cpu')['state_dict']
+            state_dict = torch.load(f=weight_path, map_location='cpu')
 
             state_dict.pop('layers.15.pred.1.conv.weight')
             state_dict.pop('layers.15.pred.1.conv.bias')

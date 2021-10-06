@@ -59,7 +59,7 @@ model:
   Model:
     in_channels: 3
     num_classes: 20
-    iou_threshold: 0.2
+    iou_threshold: 0.5
     score_threshold: 0.2
     anchors: [
       [[116.48, 91.52], [158.08, 199.68], [374.4, 324.48]],  # S = 13
