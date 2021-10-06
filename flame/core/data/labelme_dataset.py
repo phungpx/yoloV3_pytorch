@@ -1,72 +1,97 @@
 import cv2
+import json
 import torch
 import random
 import numpy as np
 import imgaug.augmenters as iaa
 
 from pathlib import Path
-from typing import Tuple, List
-from pycocotools.coco import COCO
+from natsort import natsorted
 from torch.utils.data import Dataset
+from typing import Dict, Tuple, List, Optional
 from imgaug.augmentables.bbs import BoundingBox, BoundingBoxesOnImage
 
 
-class CoCoDataset(Dataset):
+class LabelmeDataset(Dataset):
     def __init__(
         self,
-        image_size: int,
-        image_dir: str,
-        label_path: str,
-        mean: Tuple[float],
-        std: Tuple[float],
-        transforms: list = None,
+        dirnames: List[str] = None,
+        imsize: int = 416,
+        image_patterns: List[str] = ['*.jpg'],
+        label_patterns: List[str] = ['*.json'],
+        classes: Dict[str, int] = None,
+        mean: List[float] = [0.485, 0.456, 0.406],
+        std: List[float] = [0.229, 0.224, 0.225],
+        transforms: Optional[List] = None,
         S: List[int] = [13, 26, 52],
         anchors: List[List[List[float]]] = None,
     ) -> None:
-        super(CoCoDataset, self).__init__()
+        super(LabelmeDataset, self).__init__()
         self.S = S
-        self.image_size = image_size
-        self.transforms = transforms if transforms else []
+        self.imsize = imsize
+        self.classes = classes
         self.std = torch.tensor(std, dtype=torch.float).view(3, 1, 1)
         self.mean = torch.tensor(mean, dtype=torch.float).view(3, 1, 1)
+        self.pad_to_square = iaa.PadToSquare(position='right-bottom')
+
         self.anchors = torch.tensor(
             data=anchors[0] + anchors[1] + anchors[2],
             dtype=torch.float32,
         )  # 9 x 2, 3 anchors for each scale output tensor
-        self.anchors /= image_size
+        self.anchors /= imsize
         self.num_anchors = self.anchors.shape[0]  # 9
         self.num_anchors_per_scale = self.num_anchors // 3  # 3
         self.IGNORE_IOU_THRESHOLD = 0.5
 
-        self.image_dir = Path(image_dir)
-        self.coco = COCO(annotation_file=label_path)
-        self.image_indices = self.coco.getImgIds()
+        self.transforms = transforms if transforms else []
 
-        self.class2idx = dict()
-        self.coco_label_to_label = dict()
-        self.label_to_coco_label = dict()
+        image_paths, label_paths = [], []
+        for dirname in dirnames:
+            for image_pattern in image_patterns:
+                image_paths.extend(Path(dirname).glob('**/{}'.format(image_pattern)))
+            for label_pattern in label_patterns:
+                label_paths.extend(Path(dirname).glob('**/{}'.format(label_pattern)))
 
-        categories = self.coco.loadCats(ids=self.coco.getCatIds())
-        categories = sorted(categories, key=lambda x: x['id'])
-        for category in categories:
-            self.label_to_coco_label[len(self.class2idx)] = category['id']
-            self.coco_label_to_label[category['id']] = len(self.class2idx)
-            self.class2idx[category['name']] = len(self.class2idx)
+        image_paths = natsorted(image_paths, key=lambda x: str(x.stem))
+        label_paths = natsorted(label_paths, key=lambda x: str(x.stem))
 
-        self.idx2class = {class_idx: class_name for class_name, class_idx in self.class2idx.items()}
+        self.data_pairs = [[image, label] for image, label in zip(image_paths, label_paths) if image.stem == label.stem]
 
-        self.pad_to_square = iaa.PadToSquare(position='right-bottom')
-
-        print(f'{self.image_dir.stem}: {len(self.image_indices)}')
-        print(f'All Classes: {self.idx2class}')
+        print(f'{Path(dirnames[0]).parent.stem}: {len(self.data_pairs)}')
 
     def __len__(self):
-        return len(self.image_indices)
+        return len(self.data_pairs)
 
-    def __getitem__(self, idx):
-        image, image_info = self.load_image(image_idx=idx)
-        boxes, labels = self.load_annot(image_idx=idx)
-        if not len(boxes) and not len(labels):
+    def _get_label_info(self, lable_path: str, classes: dict) -> Dict:
+        with open(file=lable_path, mode='r', encoding='utf-8') as f:
+            json_info = json.load(f)
+
+        label_info = []
+        for shape in json_info['shapes']:
+            label = shape['label']
+            points = shape['points']
+            if label in self.classes and len(points) > 0:
+                x1 = min([point[0] for point in points])
+                y1 = min([point[1] for point in points])
+                x2 = max([point[0] for point in points])
+                y2 = max([point[1] for point in points])
+                bbox = (x1, y1, x2, y2)
+
+                label_info.append({'label': self.classes[label], 'bbox': bbox})
+
+        if not len(label_info):
+            label_info.append({'label': -1, 'bbox': (0, 0, 1, 1)})
+
+        return label_info
+
+    def __getitem__(self, idx: int) -> Tuple[torch.Tensor, Dict, Tuple[str, Tuple[int, int]]]:
+        image_path, label_path = self.data_pairs[idx]
+        label_info = self._get_label_info(lable_path=str(label_path), classes=self.classes)
+        image = cv2.imread(str(image_path))
+        image_info = (str(image_path), image.shape[1::-1])
+        image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+
+        if len(label_info) == 1 and label_info[0]['label'] == -1:
             print(f'Sample {image_info[0]} has no labels')
 
             # Bbox Info
@@ -83,48 +108,50 @@ class CoCoDataset(Dataset):
                 target[:, :, :, 0] = -1  # probability
 
             # Image
-            image = cv2.resize(image, dsize=(self.image_size, self.image_size))
-            image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+            image = cv2.resize(image, dsize=(self.imsize, self.imsize))
             sample = torch.from_numpy(np.ascontiguousarray(image))
             sample = sample.permute(2, 0, 1).contiguous()
             sample = (sample.float().div(255.) - self.mean) / self.std
 
             return sample, tuple(targets), image_info, boxes_info
 
-        bboxes = [BoundingBox(x1=box[0], y1=box[1], x2=box[2], y2=box[3], label=label)
-                  for box, label in zip(boxes, labels)]
-        bboxes = BoundingBoxesOnImage(bounding_boxes=bboxes, shape=image.shape)
+        boxes = [label['bbox'] for label in label_info]
+        labels = [label['label'] for label in label_info]
+
+        # Pad to square to keep object's ratio
+        bbs = BoundingBoxesOnImage([BoundingBox(x1=box[0], y1=box[1], x2=box[2], y2=box[3], label=label)
+                                    for box, label in zip(boxes, labels)], shape=image.shape)
         for transform in random.sample(self.transforms, k=random.randint(0, len(self.transforms))):
-            image, bboxes = transform(image=image, bounding_boxes=bboxes)
+            image, bbs = transform(image=image, bounding_boxes=bbs)
 
         # Rescale image and bounding boxes
-        image, bboxes = self.pad_to_square(image=image, bounding_boxes=bboxes)
-        image, bboxes = iaa.Resize(size=self.image_size)(image=image, bounding_boxes=bboxes)
+        image, bbs = self.pad_to_square(image=image, bounding_boxes=bbs)
+        image, bbs = iaa.Resize(size=self.imsize)(image=image, bounding_boxes=bbs)
+        bbs = bbs.on(image)
 
-        bboxes = bboxes.on(image)
-
-        boxes = [[bbox.x1, bbox.y1, bbox.x2, bbox.y2] for bbox in bboxes.bounding_boxes]
-        labels = [bbox.label for bbox in bboxes.bounding_boxes]
+        # Convert from Bouding Box Object to boxes, labels list
+        boxes = [[bb.x1, bb.y1, bb.x2, bb.y2] for bb in bbs.bounding_boxes]
+        labels = [bb.label for bb in bbs.bounding_boxes]
 
         # Convert to Torch Tensor
         iscrowd = torch.zeros((len(labels),), dtype=torch.int64)  # suppose all instances are not crowd
         labels = torch.tensor(labels, dtype=torch.int64)
         boxes = torch.tensor(boxes, dtype=torch.float32)
         image_id = torch.tensor([idx], dtype=torch.int64)
-        # area = (boxes[:, 3] - boxes[:, 1]) * (boxes[:, 2] - boxes[:, 0])
+        area = (boxes[:, 3] - boxes[:, 1]) * (boxes[:, 2] - boxes[:, 0])
 
-        # Bbox Info
+        # Boxes Info
         boxes_info = {
             'image_id': image_id,
             'boxes': boxes,
             'labels': labels,
-            # 'area': area,
+            'area': area,
             'iscrowd': iscrowd,
         }
 
         # Target
         # convert from Bouding Box Object to boxes (x1, y1, x2, y2, label)
-        bboxes = [[bbox.x1, bbox.y1, bbox.x2, bbox.y2, bbox.label] for bbox in bboxes.bounding_boxes]
+        bboxes = [[bb.x1, bb.y1, bb.x2, bb.y2, bb.label] for bb in bbs.bounding_boxes]
 
         # convert box type: [x1, y1, x2, y2, class] to box type: [bx/w, by/h, bw/w, bh/h, class]
         height, width = image.shape[:2]
@@ -167,49 +194,6 @@ class CoCoDataset(Dataset):
 
         return sample, tuple(targets), image_info, boxes_info
 
-    def load_image(self, image_idx):
-        image_info = self.coco.loadImgs(ids=self.image_indices[image_idx])[0]
-        image_path = str(self.image_dir.joinpath(image_info['file_name']))
-
-        image = cv2.imread(image_path)
-        image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
-
-        if len(image.shape) == 2:
-            image = cv2.cvtColor(image, cv2.COLOR_GRAY2RGB)
-
-        image_info = [image_path, image.shape[1::-1]]
-
-        return image, image_info
-
-    def load_annot(self, image_idx):
-        boxes, labels = [], []
-        annot_indices = self.coco.getAnnIds(imgIds=self.image_indices[image_idx], iscrowd=False)
-        if not len(annot_indices):
-            labels, boxes = [[-1]], [[0, 0, 1, 1]]
-            return boxes, labels
-
-        annot_infos = self.coco.loadAnns(ids=annot_indices)
-        for idx, annot_info in enumerate(annot_infos):
-            # some annotations have basically no width or height, skip them.
-            if annot_info['bbox'][2] < 1 or annot_info['bbox'][3] < 1:
-                continue
-
-            bbox = self.xywh2xyxy(annot_info['bbox'])
-            label = self.coco_label_to_label[annot_info['category_id']]
-            boxes.append(bbox)
-            labels.append(label)
-
-        return boxes, labels
-
-    def xywh2xyxy(self, box):
-        box[2] = box[0] + box[2]
-        box[3] = box[1] + box[3]
-        return box
-
-    def image_aspect_ratio(self, image_idx):
-        image_info = self.coco.loadImgs(self.image_indices[image_idx])[0]
-        return float(image_info['width']) / float(image_info['height'])
-
     def xyxy2dcxdcydhdw(self, bboxes, image_height, image_width):
         '''
         Args:
@@ -239,7 +223,3 @@ class CoCoDataset(Dataset):
         union_area = boxes1[..., 0] * boxes1[..., 1] + boxes2[..., 0] * boxes2[..., 1] - inter_area
 
         return inter_area / union_area
-
-    @property
-    def num_classes(self):
-        return len(list(self.idx2class.keys()))
