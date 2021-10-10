@@ -7,7 +7,7 @@ data:
         module: flame.core.data.pascal_dataset
         class: PascalDataset
         PascalDataset:
-          imsize: 416
+          image_size: 416
           VOC2012:
             image_dir: '''../efficient_det_pytorch/dataset/PASCALVOC2012/JPEGImages/'''
             label_dir: '''../efficient_det_pytorch/dataset/PASCALVOC2012/Annotations/'''
@@ -42,12 +42,6 @@ data:
             tvmonitor: 19
           transforms:
             - iaa.Fliplr(p=0.5)
-          S: [13, 26, 52]  # image_size // 32, image_size // 16, image_size // 8
-          anchors: [
-            [[116.48, 91.52], [158.08, 199.68], [374.4, 324.48]],  # S = 13
-            [[29.12, 62.4 ], [62.4, 45.76], [58.24, 120.64]],  # S = 26
-            [[8.32, 12.48], [16.64, 29.12], [33.28, 24.96]],  # S = 52
-          ]
       batch_size: 32
       shuffle: True
       pin_memory: True
@@ -63,7 +57,7 @@ data:
         module: flame.core.data.pascal_dataset
         class: PascalDataset
         PascalDataset:
-          imsize: 416
+          image_size: 416
           VOC2012:
             image_dir: '''../efficient_det_pytorch/dataset/PASCALVOC2012/JPEGImages/'''
             label_dir: '''../efficient_det_pytorch/dataset/PASCALVOC2012/Annotations/'''
@@ -96,12 +90,6 @@ data:
             sofa: 17
             train: 18
             tvmonitor: 19
-          S: [13, 26, 52]  # image_size // 32, image_size // 16, image_size // 8
-          anchors: [
-            [[116.48, 91.52], [158.08, 199.68], [374.4, 324.48]],  # S = 13
-            [[29.12, 62.4 ], [62.4, 45.76], [58.24, 120.64]],  # S = 26
-            [[8.32, 12.48], [16.64, 29.12], [33.28, 24.96]],  # S = 52
-          ]
       batch_size: 32
       shuffle: False
       pin_memory: True
@@ -117,7 +105,7 @@ data:
         module: flame.core.data.pascal_dataset
         class: PascalDataset
         PascalDataset:
-          imsize: 416
+          image_size: 416
           VOC2012:
             image_dir: '''../efficient_det_pytorch/dataset/PASCALVOC2012/JPEGImages/'''
             label_dir: '''../efficient_det_pytorch/dataset/PASCALVOC2012/Annotations/'''
@@ -150,12 +138,6 @@ data:
             sofa: 17
             train: 18
             tvmonitor: 19
-          S: [13, 26, 52]  # image_size // 32, image_size // 16, image_size // 8
-          anchors: [
-            [[116.48, 91.52], [158.08, 199.68], [374.4, 324.48]],  # S = 13
-            [[29.12, 62.4 ], [62.4, 45.76], [58.24, 120.64]],  # S = 26
-            [[8.32, 12.48], [16.64, 29.12], [33.28, 24.96]],  # S = 52
-          ]
       batch_size: 32
       shuffle: False
       pin_memory: True
@@ -171,8 +153,9 @@ loss:
     lambda_noobj: 10
     lambda_bbox: 1
     lambda_class: 1
-    input_size: 416
-    anchors: [
+    image_size: 416
+    scales: [13, 26, 52]
+    anchor_sizes: [
       [[116.48, 91.52], [158.08, 199.68], [374.4, 324.48]],  # S = 13
       [[29.12, 62.4 ], [62.4, 45.76], [58.24, 120.64]],  # S = 26
       [[8.32, 12.48], [16.64, 29.12], [33.28, 24.96]],  # S = 52
@@ -184,7 +167,7 @@ model:
   Model:
     weight_path: '''checkpoint/PASCAL/2110011416/best_model_30_loss=-1.4638.pt'''
     in_channels: 3
-    num_classes: 5
+    num_classes: 20
     # iou_threshold: 0.2
     # score_threshold: 0.2
     # anchors: [
@@ -232,8 +215,9 @@ metrics:
               lambda_noobj: 10
               lambda_bbox: 1
               lambda_class: 1
-              input_size: 416
-              anchors: [
+              image_size: 416
+              scales: [13, 26, 52]
+              anchor_sizes: [
                 [[116.48, 91.52], [158.08, 199.68], [374.4, 324.48]],  # S = 13
                 [[29.12, 62.4 ], [62.4, 45.76], [58.24, 120.64]],  # S = 26
                 [[8.32, 12.48], [16.64, 29.12], [33.28, 24.96]],  # S = 52
