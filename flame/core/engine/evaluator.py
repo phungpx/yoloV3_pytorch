@@ -36,9 +36,11 @@ class Evaluator(Module):
     def _update(self, engine, batch):
         self.model.eval()
         with torch.no_grad():
-            samples = torch.stack(batch[0], dim=0).to(self.device)
-            image_infos = batch[2]
-            targets = batch[3]
+            params = [param.to(self.device) if torch.is_tensor(param) else param for param in batch]
+            samples = torch.stack([image.to(self.device) for image in params[0]], dim=0)
+            targets = [{k: v.to(self.device) for k, v in target.items() if not isinstance(v, list)} for target in batch[1]]
+            image_infos = [image_info for image_info in params[2]]
+
             preds = self.model.predict(samples)
 
             return preds, targets, image_infos

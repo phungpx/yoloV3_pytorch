@@ -24,7 +24,7 @@ class YOLOv3Loss(nn.Module):
 
         self.scales = scales
         self.image_size = image_size
-        self.anchor_sizes = torch.tensor(self.anchor_sizes, dtype=torch.float32)
+        self.anchor_sizes = torch.tensor(anchor_sizes, dtype=torch.float32)
         self.ignore_iou_threshold = 0.5
 
     def forward(
