@@ -29,21 +29,22 @@ class YOLOv3Loss(loss.LossBase):
         self.anchor_sizes = torch.tensor(anchor_sizes, dtype=torch.float32)
         self.ignore_iou_threshold = 0.5
 
-    def forward(
-        self,
-        preds: Tuple[torch.Tensor],
-        targets: List[Dict[str, torch.Tensor]],
-    ) -> Dict[int, float]:
+    def forward(self, preds: Tuple[torch.Tensor], targets: List[Dict[str, torch.Tensor]]) -> Dict[int, float]:
         '''
         Args:
             preds: Tuple(Tensor)
                 N x 3 x S1 x S1 x (5 + C)
                 N x 3 x S2 x S2 x (5 + C)
                 N x 3 x S3 x S3 x (5 + C)
-            targets: Tuple(Tensor)
-                N x 3 x S1 x S1 x 6
-                N x 3 x S2 x S2 x 6
-                N x 3 x S3 x S3 x 6
+            targets: List(Dict[str, Tensor])
+                target: Dict
+                {
+                    'boxes': Float32 Tensor[N, 4], box type [x1, y1, x2, y2],
+                    'labels': Int32 Tensor[N],
+                    'areas': Float32 Tensor[N],
+                    'image_id': Int32 Tensor[N],
+                    'is_crowed': Int32 Tensor[N],
+                }
         Outputs:
             losses: dictionary
             {
@@ -67,28 +68,6 @@ class YOLOv3Loss(loss.LossBase):
             losses[pred.shape[2]] = self.compute_loss(pred, target, anchor)
 
         return losses
-
-    def xyxy2xywh(self, boxes):
-        '''convert box type from x1, y1, x2, y2 to cx, cy, w, h
-        Args:
-            boxes: [num_boxes, 4], type of box: (x1, y1, x2, y2)
-        Output:
-            boxes: [num_boxes, 4], type of box: (cx, cy, w, h)
-        '''
-        boxes[..., [2, 3]] = torch.clamp(boxes[..., [2, 3]] - boxes[..., [0, 1]], min=1.)
-        boxes[..., [0, 1]] = boxes[..., [0, 1]] + boxes[..., [2, 3]] / 2
-        return boxes
-
-    def xywh2xyxy(self, boxes):
-        '''convert box type from cx, cy, w, h to x1, y1, x2, y2
-        Args:
-            boxes: [num_boxes, 4], type of box: (cx, cy, w, h)
-        Outputs:
-            boxes: [num_boxes, 4], type of box: (x1, y1, x2, y2)
-        '''
-        boxes[..., [0, 1]] = torch.clamp(boxes[..., [0, 1]] - boxes[..., [2, 3]] / 2, min=0.)
-        boxes[..., [2, 3]] = boxes[..., [0, 1]] + boxes[..., [2, 3]]
-        return boxes
 
     def convert_target(self, target: Dict[str, torch.Tensor]) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
         '''
@@ -174,10 +153,7 @@ class YOLOv3Loss(loss.LossBase):
         bwh = torch.exp(pred[..., 3:5]) * anchor[..., 1:3]
         pred_boxes = torch.cat([bxy, bwh], dim=-1)
         true_boxes = target[..., 1:5]
-        ious = self.compute_iou(
-            boxes1=self.xywh2xyxy(pred_boxes[obj]),
-            boxes2=self.xywh2xyxy(true_boxes[obj])
-        )
+        ious = self.compute_iou(boxes1=pred_boxes[obj], boxes2=true_boxes[obj])
         obj_loss = nn.MSELoss()(torch.sigmoid(pred[..., 0:1][obj]), ious * target[..., 0:1][obj])
 
         # coordinate loss
@@ -201,26 +177,47 @@ class YOLOv3Loss(loss.LossBase):
     def compute_iou(self, boxes1: torch.Tensor, boxes2: torch.Tensor) -> torch.Tensor:
         '''
         args:
-            boxes1: [N, 4], box_type: [x1, y1, x2, y2]
-            boxes2: [N, 4], box_type: [x1, y1, x2, y2]
+            boxes1: [N, 4], box_type: [cx, cy, w, h]
+            boxes2: [N, 4], box_type: [cx, cy, w, h]
         output:
             ious: [N, 1]
         references: https://pytorch.org/docs/stable/notes/broadcasting.html#broadcasting-semantics
         '''
         # calculate intersection areas of boxes1 and boxes2
-        inter_w = torch.min(boxes1[..., 2], boxes2[..., 2]) - torch.max(boxes1[..., 0], boxes2[..., 0])
-        inter_h = torch.min(boxes1[..., 3], boxes2[..., 3]) - torch.max(boxes1[..., 1], boxes2[..., 1])
-        inter_w = torch.clamp(inter_w, min=0.)  # N
-        inter_h = torch.clamp(inter_h, min=0.)  # N
-        inter_areas = inter_w * inter_h  # N
+        boxes1_x1y1 = boxes1[..., 0:2] - boxes1[..., 2:4] / 2
+        boxes1_x2y2 = boxes1[..., 0:2] + boxes1[..., 2:4] / 2
+        boxes2_x1y1 = boxes2[..., 0:2] - boxes2[..., 2:4] / 2
+        boxes2_x2y2 = boxes2[..., 0:2] + boxes2[..., 2:4] / 2
 
-        # calculate union areas of boxes1 and boxes2
-        area_boxes1 = (boxes1[..., 2] - boxes1[..., 0]) * (boxes1[..., 3] - boxes1[..., 1])  # N
-        area_boxes2 = (boxes2[..., 2] - boxes2[..., 0]) * (boxes2[..., 3] - boxes2[..., 1])  # N
-        union_areas = area_boxes1 + area_boxes2 - inter_w * inter_h  # N
-        union_areas = torch.clamp(union_areas, min=1e-8)
+        x1y1 = torch.max(boxes1_x1y1, boxes2_x1y1)
+        x2y2 = torch.min(boxes1_x2y2, boxes2_x2y2)
 
-        # calculate ious of boxes1 and boxes2
-        ious = inter_areas / union_areas
+        inter_areas = torch.prod((x2y2 - x1y1).clamp(min=0), dim=-1, keepdims=True)
 
-        return ious.unsqueeze(dim=1)
+        boxes1_area = torch.prod((boxes1_x2y2 - boxes1_x1y1), dim=-1, keepdims=True).abs()
+        boxes2_area = torch.prod((boxes2_x2y2 - boxes2_x1y1), dim=-1, keepdims=True).abs()
+        union_areas = boxes1_area + boxes2_area - inter_areas
+
+        return inter_areas / (union_areas + 1e-6)
+
+    def xyxy2xywh(self, boxes):
+        '''convert box type from x1, y1, x2, y2 to cx, cy, w, h
+        Args:
+            boxes: [num_boxes, 4], type of box: (x1, y1, x2, y2)
+        Output:
+            boxes: [num_boxes, 4], type of box: (cx, cy, w, h)
+        '''
+        boxes[..., [2, 3]] = torch.clamp(boxes[..., [2, 3]] - boxes[..., [0, 1]], min=1.)
+        boxes[..., [0, 1]] = boxes[..., [0, 1]] + boxes[..., [2, 3]] / 2
+        return boxes
+
+    def xywh2xyxy(self, boxes):
+        '''convert box type from cx, cy, w, h to x1, y1, x2, y2
+        Args:
+            boxes: [num_boxes, 4], type of box: (cx, cy, w, h)
+        Outputs:
+            boxes: [num_boxes, 4], type of box: (x1, y1, x2, y2)
+        '''
+        boxes[..., [0, 1]] = torch.clamp(boxes[..., [0, 1]] - boxes[..., [2, 3]] / 2, min=0.)
+        boxes[..., [2, 3]] = boxes[..., [0, 1]] + boxes[..., [2, 3]]
+        return boxes

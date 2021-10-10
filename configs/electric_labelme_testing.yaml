@@ -9,20 +9,23 @@ data:
         LabelmeDataset:
           imsize: 416
           dirnames:
-            - '''/extdata/ocr/phungpx/projects/PHUNGPX/semantic_segmentation_pytorch/dataset/VEHICLE_REGISTRATION/test/'''
+            - '''dataset/electronic_components/valid/'''
           image_patterns: ['''*.jpg''', '''*.png''', '''*.jpeg''', '''*.JPG''', '''*.PNG''', '''*.JPEG''']
           label_patterns: ['''*.json''']
           mean: [0.485, 0.456, 0.406]
           std: [0.229, 0.224, 0.225]
           classes:
-            DKX_BACK_TYPE_1: 0
-            DKX_TYPE_1: 1
-            DKX_BACK_TYPE_2: 2
-            DKX_TYPE_2: 3
-            DKX_BACK_TYPE_3: 4
-            DKX_TYPE_3: 5
-            DKX_BACK_TYPE_5: 6
-            DKX_FRONT_TYPE_5: 7
+            capacitor: 0
+            diode: 1
+            IC: 2
+            resistor: 3
+            transistor: 4
+          S: [13, 26, 52]  # imsize // 32, imsize // 16, imsize // 8
+          anchors: [
+            [[116.48, 91.52], [158.08, 199.68], [374.4, 324.48]],  # S = 13
+            [[29.12, 62.4 ], [62.4, 45.76], [58.24, 120.64]],  # S = 26
+            [[8.32, 12.48], [16.64, 29.12], [33.28, 24.96]],  # S = 52
+          ]
       batch_size: 16
       shuffle: False
       num_workers: 12
@@ -35,7 +38,7 @@ model:
   class: Model
   Model:
     in_channels: 3
-    num_classes: 8
+    num_classes: 5
     iou_threshold: 0.2
     score_threshold: 0.2
     anchors: [
@@ -58,14 +61,11 @@ metrics:
             class: MeanAveragePrecision
             MeanAveragePrecision:
               classes:
-                DKX_BACK_TYPE_1: 0
-                DKX_TYPE_1: 1
-                DKX_BACK_TYPE_2: 2
-                DKX_TYPE_2: 3
-                DKX_BACK_TYPE_3: 4
-                DKX_TYPE_3: 5
-                DKX_BACK_TYPE_5: 6
-                DKX_FRONT_TYPE_5: 7
+                capacitor: 0
+                diode: 1
+                IC: 2
+                resistor: 3
+                transistor: 4
               iou_threshold: 0.5
               method: '''every_point_interpolation'''
           output_transform: 'lambda x: (x[0], x[1])'
@@ -83,7 +83,7 @@ checkpoint_loader:
   module: flame.handlers.checkpoint
   class: CheckpointLoader
   CheckpointLoader:
-    checkpoint_path: '''checkpoint/vehicle_registration/2110070052/best_model_164_loss=-0.1090.pt'''
+    checkpoint_path: '''checkpoint/electronic_components/2110072054/best_model_56_loss=-3.2283.pt'''
     mode: '''test'''
 
 predictor:
@@ -91,17 +91,14 @@ predictor:
   class: RegionPredictor
   RegionPredictor:
     evaluator_name: '''engine'''
-    output_dir: '''checkpoint/vehicle_registration/2110070052/best_model_164_loss=-0.1090/test/'''
+    output_dir: '''checkpoint/electronic_components/2110072054/best_model_56_loss=-3.2283/'''
     imsize: 416
     classes:
-      DKX_BACK_TYPE_1: [[128, 0, 0], 0]
-      DKX_TYPE_1: [[0, 128, 0], 1]
-      DKX_BACK_TYPE_2: [[128, 128, 0], 2]
-      DKX_TYPE_2: [[0, 0, 128], 3]
-      DKX_BACK_TYPE_3: [[128, 0, 128], 4]
-      DKX_TYPE_3: [[0, 128, 128], 5]
-      DKX_BACK_TYPE_5: [[128, 128, 128], 6]
-      DKX_FRONT_TYPE_5: [[64, 0, 0], 7]
+      capacitor: [[128, 0, 0], 0]
+      diode: [[0, 128, 0], 1]
+      IC: [[128, 128, 0], 2]
+      resistor: [[0, 0, 128], 3]
+      transistor: [[128, 0, 128], 4]
     output_transform: 'lambda x: (x[0], x[-1])'
 
 engine:
