@@ -13,7 +13,7 @@ class Loss(Metric):
 
     def update(self, output):
         preds, targets = output
-        assert preds[0].shape[0] == targets[0].shape[0], 'the number of samples in predictions and targets must be equal.'
+        # assert preds[0].shape[0] == targets[0].shape[0], 'the number of samples in predictions and targets must be equal.'
         losses = self._loss_fn(preds, targets)
         loss = losses[13] + losses[26] + losses[52]
 

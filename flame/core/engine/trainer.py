@@ -52,9 +52,11 @@ class Trainer(Engine):
     def _update(self, engine, batch):
         self.model.train()
         self.optimizer.zero_grad()
-        samples = torch.stack(batch[0], dim=0).to(self.device)
-        targets = [torch.stack(target, dim=0).to(self.device) for target in zip(*batch[1])]  # Tuple of target Tensors
-        preds = self.model(samples)  # Tuple of prediction Tensors
+        params = [param.to(self.device) if torch.is_tensor(param) else param for param in batch]
+        samples = torch.stack([sample.to(self.device) for sample in params[0]], dim=0)
+        targets = [{k: v.to(self.device) for k, v in target.items() if not isinstance(v, list)} for target in params[1]]
+
+        preds = self.model(samples)
 
         losses = self.loss(preds, targets)
 
@@ -82,8 +84,10 @@ class Evaluator(Engine):
     def _update(self, engine, batch):
         self.model.eval()
         with torch.no_grad():
-            batch[0] = torch.stack(batch[0], dim=0).to(self.device)
-            batch[1] = [torch.stack(target, dim=0).to(self.device) for target in zip(*batch[1])]  # Tuple of target Tensors
-            batch[0] = self.model(batch[0])  # Tuple of prediction Tensors
+            params = [param.to(self.device) if torch.is_tensor(param) else param for param in batch]
+            samples = torch.stack([image.to(self.device) for image in params[0]], dim=0)
+            targets = [{k: v.to(self.device) for k, v in target.items() if not isinstance(v, list)} for target in batch[1]]
 
-            return batch
+            preds = self.model(samples)
+
+            return preds, targets
