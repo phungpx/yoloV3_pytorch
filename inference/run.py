@@ -27,7 +27,7 @@ if __name__ == '__main__':
     for i in range(len(images)):
         if predictions[i]['labels'] is not None:
             thickness = max(images[i].shape) // 500
-            fontscale = max(images[i].shape) / 1200
+            fontscale = max(images[i].shape) / 500
             boxes = predictions[i]['boxes'].cpu().numpy().astype(np.int32)
             labels = predictions[i]['labels'].cpu().numpy()
             scores = predictions[i]['scores'].cpu().numpy()
@@ -42,7 +42,7 @@ if __name__ == '__main__':
                 cv2.rectangle(
                     img=images[i],
                     pt1=tuple(box[:2]),
-                    pt2=tuple(box[2:]),    
+                    pt2=tuple(box[2:]),
                     color=color,
                     thickness=thickness
                 )
@@ -57,9 +57,9 @@ if __name__ == '__main__':
                     thickness=thickness,
                     lineType=cv2.LINE_AA)
 
-        cv2.imwrite(str(output_dir.joinpath(Path(args.image_paths[i]).name)), images[i])
+                if args.show:
+                    cv2.imshow('visual', images[i])
+                    cv2.waitKey()
+                    cv2.destroyAllWindows()
 
-        if args.show:
-            cv2.imshow('visual', images[i])
-            cv2.waitKey()
-            cv2.destroyAllWindows()
+        cv2.imwrite(str(output_dir.joinpath(Path(args.image_paths[i]).name)), images[i])
