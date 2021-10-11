@@ -27,7 +27,7 @@ if __name__ == '__main__':
     for i in range(len(images)):
         if predictions[i]['labels'] is not None:
             thickness = max(images[i].shape) // 500
-            fontscale = max(images[i].shape) / 500
+            fontscale = max(images[i].shape) / 1200
             boxes = predictions[i]['boxes'].cpu().numpy().astype(np.int32)
             labels = predictions[i]['labels'].cpu().numpy()
             scores = predictions[i]['scores'].cpu().numpy()
