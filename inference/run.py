@@ -49,7 +49,7 @@ if __name__ == '__main__':
 
                 cv2.putText(
                     img=images[i],
-                    text=f'{class_name}: {score: .4f}',
+                    text=f'{class_name}: {score:.4f}',
                     org=tuple(box[:2]),
                     fontFace=cv2.FONT_HERSHEY_PLAIN,
                     fontScale=fontscale,

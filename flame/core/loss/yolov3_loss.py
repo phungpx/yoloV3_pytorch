@@ -110,7 +110,8 @@ class YOLOv3Loss(loss.LossBase):
                 anchor_indices = ious.argsort(descending=True, dim=0)  # anchor_indices = 0, 1, 2
 
                 for anchor_id in anchor_indices:
-                    j, i = int(bx // grid_size), int(by // grid_size)  # which cell? Ex: S=13, cx=0.5 --> i=int(13 * 0.5)=6
+                    j = min(int(bx // grid_size), self.scales[scale_id] - 1)
+                    i = min(int(by // grid_size), self.scales[scale_id] - 1)
                     anchor_taken = targets[scale_id][anchor_id, i, j, 0]
 
                     if not anchor_taken:
@@ -181,7 +182,6 @@ class YOLOv3Loss(loss.LossBase):
             boxes2: [N, 4], box_type: [cx, cy, w, h]
         output:
             ious: [N, 1]
-        references: https://pytorch.org/docs/stable/notes/broadcasting.html#broadcasting-semantics
         '''
         # calculate intersection areas of boxes1 and boxes2
         boxes1_x1y1 = boxes1[..., 0:2] - boxes1[..., 2:4] / 2
