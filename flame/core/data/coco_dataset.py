@@ -22,7 +22,6 @@ class CoCoDataset(Dataset):
         transforms: list = None,
     ) -> None:
         super(CoCoDataset, self).__init__()
-        self.S = S
         self.image_size = image_size
         self.transforms = transforms if transforms else []
         self.std = torch.tensor(std, dtype=torch.float).view(3, 1, 1)

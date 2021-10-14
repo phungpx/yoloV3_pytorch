@@ -12,12 +12,6 @@ data:
           label_path: '''../efficient_det_pytorch/dataset/birdview_vehicles/annotations/instances_val.json'''
           mean: [0.485, 0.456, 0.406]
           std: [0.229, 0.224, 0.225]
-          S: [13, 26, 52]  # image_size // 32, image_size // 16, image_size // 8
-          anchors: [
-            [[116.48, 91.52], [158.08, 199.68], [374.4, 324.48]],  # S = 13
-            [[29.12, 62.4 ], [62.4, 45.76], [58.24, 120.64]],  # S = 26
-            [[8.32, 12.48], [16.64, 29.12], [33.28, 24.96]],  # S = 52
-          ]
       batch_size: 16
       shuffle: False
       drop_last: False

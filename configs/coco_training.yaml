@@ -20,17 +20,11 @@ data:
             - iaa.Fliplr(p=0.5)
             # - iaa.Flipud(p=0.5)
             # - iaa.Grayscale(alpha=(0.0, 0.1))
-            # # - iaa.Rot90(k=[0, 1, 2, 3], keep_size=False)
+            # - iaa.Rot90(k=[0, 1, 2, 3], keep_size=False)
             # - iaa.Affine(rotate=(-5, 5), shear=(-5, 5), fit_output=True)
             # - iaa.Crop(percent=(0, 0.1))
             # - iaa.Pad(percent=(0, 0.1), keep_size=False)
             # - iaa.ChangeColorTemperature()
-          S: [13, 26, 52]  # image_size // 32, image_size // 16, image_size // 8
-          anchors: [
-            [[116.48, 91.52], [158.08, 199.68], [374.4, 324.48]],  # S = 13
-            [[29.12, 62.4 ], [62.4, 45.76], [58.24, 120.64]],  # S = 26
-            [[8.32, 12.48], [16.64, 29.12], [33.28, 24.96]],  # S = 52
-          ]
       batch_size: 16
       shuffle: True
       drop_last: False
@@ -51,12 +45,6 @@ data:
           label_path: '''../efficient_det_pytorch/dataset/birdview_vehicles/annotations/instances_train.json'''
           mean: [0.485, 0.456, 0.406]
           std: [0.229, 0.224, 0.225]
-          S: [13, 26, 52]  # image_size // 32, image_size // 16, image_size // 8
-          anchors: [
-            [[116.48, 91.52], [158.08, 199.68], [374.4, 324.48]],  # S = 13
-            [[29.12, 62.4 ], [62.4, 45.76], [58.24, 120.64]],  # S = 26
-            [[8.32, 12.48], [16.64, 29.12], [33.28, 24.96]],  # S = 52
-          ]
       batch_size: 16
       shuffle: False
       drop_last: False
@@ -77,12 +65,6 @@ data:
           label_path: '''../efficient_det_pytorch/dataset/birdview_vehicles/annotations/instances_val.json'''
           mean: [0.485, 0.456, 0.406]
           std: [0.229, 0.224, 0.225]
-          S: [13, 26, 52]  # image_size // 32, image_size // 16, image_size // 8
-          anchors: [
-            [[116.48, 91.52], [158.08, 199.68], [374.4, 324.48]],  # S = 13
-            [[29.12, 62.4 ], [62.4, 45.76], [58.24, 120.64]],  # S = 26
-            [[8.32, 12.48], [16.64, 29.12], [33.28, 24.96]],  # S = 52
-          ]
       batch_size: 16
       shuffle: False
       drop_last: False
@@ -98,8 +80,9 @@ loss:
     lambda_noobj: 10
     lambda_bbox: 1
     lambda_class: 1
-    input_size: 416
-    anchors: [
+    image_size: 416
+    scales: [13, 26, 52]
+    anchor_sizes: [
       [[116.48, 91.52], [158.08, 199.68], [374.4, 324.48]],  # S = 13
       [[29.12, 62.4 ], [62.4, 45.76], [58.24, 120.64]],  # S = 26
       [[8.32, 12.48], [16.64, 29.12], [33.28, 24.96]],  # S = 52
@@ -159,8 +142,8 @@ metrics:
               lambda_noobj: 10
               lambda_bbox: 1
               lambda_class: 1
-              input_size: 416
-              anchors: [
+              scales: [13, 26, 52]
+              anchor_sizes: [
                 [[116.48, 91.52], [158.08, 199.68], [374.4, 324.48]],  # S = 13
                 [[29.12, 62.4 ], [62.4, 45.76], [58.24, 120.64]],  # S = 26
                 [[8.32, 12.48], [16.64, 29.12], [33.28, 24.96]],  # S = 52
