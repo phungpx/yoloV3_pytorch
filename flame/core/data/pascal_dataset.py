@@ -16,7 +16,6 @@ class PascalDataset(Dataset):
     def __init__(
         self,
         VOC2007: Dict[str, str] = None,
-        VOC2012: Dict[str, str] = None,
         image_size: int = 416,
         image_extent: str = '.jpg',
         label_extent: str = '.xml',
@@ -34,28 +33,27 @@ class PascalDataset(Dataset):
         self.transforms = transforms if transforms else []
 
         # VOC2007
-        image_dir, label_dir = Path(VOC2007['image_dir']), Path(VOC2007['label_dir'])
-        image_paths = natsorted(list(Path(image_dir).glob(f'*{image_extent}')), key=lambda x: str(x.stem))
-        label_paths = natsorted(list(Path(label_dir).glob(f'*{label_extent}')), key=lambda x: str(x.stem))
-        voc2007_pairs = [[image, label] for image, label in zip(image_paths, label_paths) if image.stem == label.stem]
+        # image_dir, label_dir = Path(VOC2007['image_dir']), Path(VOC2007['label_dir'])
+        # image_paths = natsorted(list(Path(image_dir).glob(f'*{image_extent}')), key=lambda x: str(x.stem))
+        # label_paths = natsorted(list(Path(label_dir).glob(f'*{label_extent}')), key=lambda x: str(x.stem))
+        # voc2007_pairs = [[image, label] for image, label in zip(image_paths, label_paths) if image.stem == label.stem]
 
-        # VOC2012
+        # VOC2007
         image_dir, label_dir, txt_path = Path(VOC2012['image_dir']), Path(VOC2012['label_dir']), Path(VOC2012['txt_path'])
         with txt_path.open(mode='r', encoding='utf-8') as fp:
             image_names = fp.read().splitlines()
 
-        voc2012_pairs = []
+        voc2007_pairs = []
         for image_name in image_names:
             image_path = image_dir.joinpath(f'{image_name}{image_extent}')
             label_path = label_dir.joinpath(f'{image_name}{label_extent}')
             if image_path.exists() and label_path.exists():
                 voc2012_pairs.append([image_path, label_path])
 
-        self.data_pairs = voc2007_pairs + voc2012_pairs
+        self.data_pairs = voc2007_pairs
+
 
         print(f'- {txt_path.stem}:')
-        print(f'\t VOC2007: {len(voc2007_pairs)}')
-        print(f'\t VOC2012: {len(voc2012_pairs)}')
         print(f'\t Total: {len(self.data_pairs)}')
 
     def __len__(self):
