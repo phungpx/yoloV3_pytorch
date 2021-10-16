@@ -54,13 +54,9 @@ data:
         class: PascalDataset
         PascalDataset:
           image_size: 416
-          VOC2012:
-            image_dir: '''../efficient_det_pytorch/dataset/PASCALVOC2012/JPEGImages/'''
-            label_dir: '''../efficient_det_pytorch/dataset/PASCALVOC2012/Annotations/'''
-            txt_path: '''../efficient_det_pytorch/dataset/PASCALVOC2012/ImageSets/Segmentation/train.txt'''
           VOC2007:
-            image_dir: '''../efficient_det_pytorch/dataset/PASCALVOC2007/VOCtrainval_06-Nov-2007/VOCdevkit/VOC2007/JPEGImages/'''
-            label_dir: '''../efficient_det_pytorch/dataset/PASCALVOC2007/VOCtrainval_06-Nov-2007/VOCdevkit/VOC2007/Annotations/'''
+            image_dir: '''../dataset/VOCdevkit/VOC2007/JPEGImages/'''
+            label_dir: '''../dataset/VOCdevkit/VOC2007/Annotations/'''
           image_extent: '''.jpg'''
           label_extent: '''.xml'''
           mean: [0.485, 0.456, 0.406]
@@ -102,13 +98,9 @@ data:
         class: PascalDataset
         PascalDataset:
           image_size: 416
-          VOC2012:
-            image_dir: '''../efficient_det_pytorch/dataset/PASCALVOC2012/JPEGImages/'''
-            label_dir: '''../efficient_det_pytorch/dataset/PASCALVOC2012/Annotations/'''
-            txt_path: '''../efficient_det_pytorch/dataset/PASCALVOC2012/ImageSets/Segmentation/val.txt'''
           VOC2007:
-            image_dir: '''../efficient_det_pytorch/dataset/PASCALVOC2007/VOCtest_06-Nov-2007/VOCdevkit/VOC2007/JPEGImages/'''
-            label_dir: '''../efficient_det_pytorch/dataset/PASCALVOC2007/VOCtest_06-Nov-2007/VOCdevkit/VOC2007/Annotations/'''
+            image_dir: '''../dataset/PASCALVOC2007/VOC2007/JPEGImages/'''
+            label_dir: '''../dataset/PASCALVOC2007/VOC2007/Annotations/'''
           image_extent: '''.jpg'''
           label_extent: '''.xml'''
           mean: [0.485, 0.456, 0.406]
