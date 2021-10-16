@@ -11,6 +11,7 @@ data:
           VOC2007:
             image_dir: '''../dataset/VOCdevkit/VOC2007/JPEGImages/'''
             label_dir: '''../dataset/VOCdevkit/VOC2007/Annotations/'''
+            txt_path: '''../dataset/VOCdevkit/VOC2007/ImageSets/Main/train.txt'''
           image_extent: '''.jpg'''
           label_extent: '''.xml'''
           mean: [0.485, 0.456, 0.406]
@@ -57,6 +58,7 @@ data:
           VOC2007:
             image_dir: '''../dataset/VOCdevkit/VOC2007/JPEGImages/'''
             label_dir: '''../dataset/VOCdevkit/VOC2007/Annotations/'''
+            txt_path: '''../dataset/VOCdevkit/VOC2007/ImageSets/Main/train.txt'''
           image_extent: '''.jpg'''
           label_extent: '''.xml'''
           mean: [0.485, 0.456, 0.406]
@@ -99,8 +101,9 @@ data:
         PascalDataset:
           image_size: 416
           VOC2007:
-            image_dir: '''../dataset/PASCALVOC2007/VOC2007/JPEGImages/'''
-            label_dir: '''../dataset/PASCALVOC2007/VOC2007/Annotations/'''
+            image_dir: '''../dataset/VOCdevkit/VOC2007/JPEGImages/'''
+            label_dir: '''../dataset/VOCdevkit/VOC2007/Annotations/'''
+            txt_path: '''../dataset/VOCdevkit/VOC2007/ImageSets/Main/train.txt'''
           image_extent: '''.jpg'''
           label_extent: '''.xml'''
           mean: [0.485, 0.456, 0.406]
