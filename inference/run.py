@@ -59,10 +59,7 @@ if __name__ == '__main__':
                     lineType=cv2.LINE_AA)
 
                 if args.show:
-                    print('OK')
-                    plt.imshow(images[i])
-                    # cv2.waitKey()
-                    # cv2.destroyAllWindows()
+                    cv2.waitKey()
+                    cv2.destroyAllWindows()
 
-        # cv2.imwrite(str(output_dir.joinpath(Path(args.image_paths[i]).name)), images[i])
-        # plt.imshow(image)
+        cv2.imwrite(str(output_dir.joinpath(Path(args.image_paths[i]).name)), images[i])
