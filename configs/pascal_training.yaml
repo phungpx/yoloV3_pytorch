@@ -58,7 +58,7 @@ data:
           VOC2007:
             image_dir: '''../dataset/VOCdevkit/VOC2007/JPEGImages/'''
             label_dir: '''../dataset/VOCdevkit/VOC2007/Annotations/'''
-            txt_path: '''../dataset/VOCdevkit/VOC2007/ImageSets/Main/val.txt'''
+            txt_path: '''../dataset/VOCdevkit/VOC2007/ImageSets/Main/my_train.txt'''
           image_extent: '''.jpg'''
           label_extent: '''.xml'''
           mean: [0.485, 0.456, 0.406]
@@ -103,7 +103,7 @@ data:
           VOC2007:
             image_dir: '''../dataset/VOCdevkit/VOC2007/JPEGImages/'''
             label_dir: '''../dataset/VOCdevkit/VOC2007/Annotations/'''
-            txt_path: '''../dataset/VOCdevkit/VOC2007/ImageSets/Main/trainval.txt'''
+            txt_path: '''../dataset/VOCdevkit/VOC2007/ImageSets/Main/my_val.txt'''
           image_extent: '''.jpg'''
           label_extent: '''.xml'''
           mean: [0.485, 0.456, 0.406]
