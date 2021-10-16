@@ -7,7 +7,7 @@ Predictor:
     YOLOv3:
       in_channels: 3
       num_classes: 20
-  weight_path: '''../checkpoint/PASCAL/2110011416/best_model_30_loss=-1.4638.pt'''
+  weight_path: '''../checkpoint/PASCAL/2110160426/best_model_7_loss=-2.4394.pt'''
   batch_size: 1
   image_size: 416
   mean: [0.485, 0.456, 0.406]
