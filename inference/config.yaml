@@ -7,7 +7,7 @@ Predictor:
     YOLOv3:
       in_channels: 3
       num_classes: 20
-  weight_path: '''../../78.1map_0.2threshold_PASCAL.tar'''
+  weight_path: '''../../78.1map_0.2threshold_PASCAL.tar''' 
   batch_size: 1
   image_size: 416
   mean: [0.485, 0.456, 0.406]
