@@ -58,8 +58,9 @@ if __name__ == '__main__':
                     thickness=thickness,
                     lineType=cv2.LINE_AA)
 
-                if args.show:
-                    cv2.waitKey()
-                    cv2.destroyAllWindows()
+        if args.show:
+            cv2.imshow(f'{i}.jpg', images[i])
+            cv2.waitKey()
+            cv2.destroyAllWindows()
 
         cv2.imwrite(str(output_dir.joinpath(Path(args.image_paths[i]).name)), images[i])
