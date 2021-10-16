@@ -24,6 +24,7 @@ if __name__ == '__main__':
 
     images = [cv2.imread(image_path) for image_path in args.image_paths]
     predictions = predictor(images)
+    print(predictions)
 
     for i in range(len(images)):
         if predictions[i]['labels'] is not None:
@@ -59,9 +60,10 @@ if __name__ == '__main__':
                     lineType=cv2.LINE_AA)
 
                 if args.show:
+                    print('OK')
                     cv2.imshow('visual', images[i])
                     cv2.waitKey()
                     cv2.destroyAllWindows()
 
         # cv2.imwrite(str(output_dir.joinpath(Path(args.image_paths[i]).name)), images[i])
-        plt.imshow(image)
+        # plt.imshow(image)
