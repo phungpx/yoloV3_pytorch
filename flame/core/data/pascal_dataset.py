@@ -48,7 +48,7 @@ class PascalDataset(Dataset):
             image_path = image_dir.joinpath(f'{image_name}{image_extent}')
             label_path = label_dir.joinpath(f'{image_name}{label_extent}')
             if image_path.exists() and label_path.exists():
-                voc2012_pairs.append([image_path, label_path])
+                voc2017_pairs.append([image_path, label_path])
 
         self.data_pairs = voc2007_pairs
 
