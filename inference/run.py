@@ -2,6 +2,7 @@ import cv2
 import argparse
 import numpy as np
 from pathlib import Path
+import matplotlib.pyplot as plt
 
 import utils
 
@@ -62,4 +63,5 @@ if __name__ == '__main__':
                     cv2.waitKey()
                     cv2.destroyAllWindows()
 
-        cv2.imwrite(str(output_dir.joinpath(Path(args.image_paths[i]).name)), images[i])
+        # cv2.imwrite(str(output_dir.joinpath(Path(args.image_paths[i]).name)), images[i])
+        plt.imshow(image)
