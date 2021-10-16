@@ -10,7 +10,8 @@ import utils
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--config', default='config.yaml')
-    parser.add_argument('--image-paths', nargs='+')
+    parser.add_argument('input_dir', type=str)
+    parser.add_argument('--pattern', type=str)
     parser.add_argument('--show', action='store_true')
     parser.add_argument('--output-dir', default='output/')
     args = parser.parse_args()
@@ -19,20 +20,25 @@ if __name__ == '__main__':
     if not output_dir.exists():
         output_dir.mkdir(parents=True)
 
+    image_paths = list(Path(args.input_dir).glob(args.pattern)) if args.pattern else [Path(args.input_dir)]
+
     config = utils.load_yaml(args.config)
     predictor = utils.create_instance(config)
 
-    images = [cv2.imread(image_path) for image_path in args.image_paths]
-    predictions = predictor(images)
+    for i, image_path in enumerate(image_paths, 1):
+        print('**' * 30)
+        print(f'{i} / {len(image_paths)} - {image_path.name}')
 
-    for i in range(len(images)):
-        if predictions[i]['labels'] is not None:
-            thickness = max(images[i].shape) // 500
-            fontscale = max(images[i].shape) / 500
-            boxes = predictions[i]['boxes'].cpu().numpy().astype(np.int32)
-            labels = predictions[i]['labels'].cpu().numpy()
-            scores = predictions[i]['scores'].cpu().numpy()
-            class_names = predictions[i]['names']
+        image = cv2.imread(str(image_path))
+        prediction = predictor([image])[0]
+
+        if prediction['labels'] is not None:
+            thickness = max(image.shape) // 500
+            fontscale = max(image.shape) / 500
+            boxes = prediction['boxes'].cpu().numpy().astype(np.int32)
+            labels = prediction['labels'].cpu().numpy()
+            scores = prediction['scores'].cpu().numpy()
+            class_names = prediction['names']
             for box, score, class_name in zip(boxes, scores, class_names):
                 color = (
                     np.random.randint(200, 255),
@@ -41,7 +47,7 @@ if __name__ == '__main__':
                 )
 
                 cv2.rectangle(
-                    img=images[i],
+                    img=image,
                     pt1=tuple(box[:2]),
                     pt2=tuple(box[2:]),
                     color=color,
@@ -49,7 +55,7 @@ if __name__ == '__main__':
                 )
 
                 cv2.putText(
-                    img=images[i],
+                    img=image,
                     text=f'{class_name}: {score: .4f}',
                     org=tuple(box[:2]),
                     fontFace=cv2.FONT_HERSHEY_PLAIN,
@@ -58,9 +64,9 @@ if __name__ == '__main__':
                     thickness=thickness,
                     lineType=cv2.LINE_AA)
 
-        if args.show:
-            cv2.imshow(f'{i}.jpg', images[i])
-            cv2.waitKey()
-            cv2.destroyAllWindows()
+            if args.show:
+                cv2.imshow(image_path.name, image)
+                cv2.waitKey()
+                cv2.destroyAllWindows()
 
-        cv2.imwrite(str(output_dir.joinpath(Path(args.image_paths[i]).name)), images[i])
+        cv2.imwrite(str(output_dir.joinpath(image_path.name)), image)
