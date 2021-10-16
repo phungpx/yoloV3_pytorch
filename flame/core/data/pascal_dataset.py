@@ -53,8 +53,8 @@ class PascalDataset(Dataset):
         self.data_pairs = voc2007_pairs
 
 
-        print(f'- {txt_path.stem}:')
-        print(f'\t Total: {len(self.data_pairs)}')
+        # print(f'- {txt_path.stem}:')
+        # print(f'\t Total: {len(self.data_pairs)}')
 
     def __len__(self):
         return len(self.data_pairs)
