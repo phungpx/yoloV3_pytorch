@@ -39,7 +39,7 @@ class PascalDataset(Dataset):
         # voc2007_pairs = [[image, label] for image, label in zip(image_paths, label_paths) if image.stem == label.stem]
 
         # VOC2007
-        image_dir, label_dir, txt_path = Path(VOC2012['image_dir']), Path(VOC2012['label_dir']), Path(VOC2012['txt_path'])
+        image_dir, label_dir, txt_path = Path(VOC2007['image_dir']), Path(VOC2007['label_dir']), Path(VOC2007['txt_path'])
         with txt_path.open(mode='r', encoding='utf-8') as fp:
             image_names = fp.read().splitlines()
 
@@ -48,7 +48,7 @@ class PascalDataset(Dataset):
             image_path = image_dir.joinpath(f'{image_name}{image_extent}')
             label_path = label_dir.joinpath(f'{image_name}{label_extent}')
             if image_path.exists() and label_path.exists():
-                voc2017_pairs.append([image_path, label_path])
+                voc2007_pairs.append([image_path, label_path])
 
         self.data_pairs = voc2007_pairs
 
