@@ -10,7 +10,7 @@ import utils
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--config', default='config.yaml')
-    parser.add_argument('input_dir', type=str)
+    parser.add_argument('--input-dir', type=str)
     parser.add_argument('--pattern', type=str)
     parser.add_argument('--show', action='store_true')
     parser.add_argument('--output-dir', default='output/')
