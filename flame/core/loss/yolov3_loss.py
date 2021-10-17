@@ -110,7 +110,7 @@ class YOLOv3Loss(loss.LossBase):
                 anchor_indices = ious.argsort(descending=True, dim=0)  # anchor_indices = 0, 1, 2
 
                 for anchor_id in anchor_indices:
-                    j, i = min(int(bx // grid_size), self.scales[scale_id]) , min(int(by // grid_size), self.scales[scale_id])  # which cell? Ex: S=13, cx=0.5 --> i=int(13 * 0.5)=6
+                    j, i = min(int(bx // grid_size), self.scales[scale_id] - 1) , min(int(by // grid_size), self.scales[scale_id] - 1)  # which cell? Ex: S=13, cx=0.5 --> i=int(13 * 0.5)=6
                     anchor_taken = targets[scale_id][anchor_id, i, j, 0]
 
                     if not anchor_taken:
