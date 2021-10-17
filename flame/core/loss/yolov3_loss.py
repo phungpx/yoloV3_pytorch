@@ -111,6 +111,7 @@ class YOLOv3Loss(loss.LossBase):
 
                 for anchor_id in anchor_indices:
                     j, i = int(bx // grid_size), int(by // grid_size)  # which cell? Ex: S=13, cx=0.5 --> i=int(13 * 0.5)=6
+                    print(f'i={i} - j={j}')
                     anchor_taken = targets[scale_id][anchor_id, i, j, 0]
 
                     if not anchor_taken:
