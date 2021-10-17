@@ -7,10 +7,10 @@ data:
         module: flame.core.data.labelme_dataset
         class: LabelmeDataset
         LabelmeDataset:
-          imsize: 416
+          image_size: 416
           dirnames:
             - '''../test_dataset/train/'''
-          image_patterns: ['''*.jpg''', '''*.png''', '''*.jpeg''', '''*.JPG''', '''*.PNG''', '''*.JPEG''']
+          image_patterns: ['''*.jpg''', '''*.JPG''']
           label_patterns: ['''*.json''']
           mean: [0.485, 0.456, 0.406]
           std: [0.229, 0.224, 0.225]
@@ -21,26 +21,20 @@ data:
             resistor: 3
             transistor: 4
           transforms:
-            # - iaa.MotionBlur()
-            # - iaa.ChangeColorTemperature()
-            # - iaa.GaussianBlur(sigma=(0, 1))
-            # - iaa.Grayscale(alpha=(0.0, 1.0))
-            # - iaa.Add(value=(-50, 50), per_channel=True)
+            - iaa.MotionBlur()
+            - iaa.ChangeColorTemperature()
+            - iaa.GaussianBlur(sigma=(0, 1))
+            - iaa.Grayscale(alpha=(0.0, 1.0))
+            - iaa.Add(value=(-50, 50), per_channel=True)
             - iaa.Fliplr(p=0.5)
-            # - iaa.Flipud(p=0.5)
-            # - iaa.Crop(percent=(0, 0.1))
-            # - iaa.Pad(percent=(0, 0.1), keep_size=False)
+            - iaa.Flipud(p=0.5)
+            - iaa.Crop(percent=(0, 0.1))
+            - iaa.Pad(percent=(0, 0.1), keep_size=False)
             # - iaa.Rot90(k=[0, 1, 2, 3], keep_size=False)
             # - iaa.Affine(rotate=(0, 360), shear=(-2, 2), fit_output=True)
-          S: [13, 26, 52]  # imsize // 32, imsize // 16, imsize // 8
-          anchors: [
-            [[116.48, 91.52], [158.08, 199.68], [374.4, 324.48]],  # S = 13
-            [[29.12, 62.4 ], [62.4, 45.76], [58.24, 120.64]],  # S = 26
-            [[8.32, 12.48], [16.64, 29.12], [33.28, 24.96]],  # S = 52
-          ]
-      batch_size: 32
+      batch_size: 4
       shuffle: True
-      num_workers: 12
+      num_workers: 2
       pin_memory: True
       drop_last: False
       collate_fn: 'lambda batch:tuple(zip(*batch))'
@@ -53,10 +47,10 @@ data:
         module: flame.core.data.labelme_dataset
         class: LabelmeDataset
         LabelmeDataset:
-          imsize: 416
+          image_size: 416
           dirnames:
-            - '''../test_dataset/val/'''
-          image_patterns: ['''*.jpg''', '''*.png''', '''*.jpeg''', '''*.JPG''', '''*.PNG''', '''*.JPEG''']
+            - '''../test_dataset/valid/'''
+          image_patterns: ['''*.jpg''', '''*.JPG''']
           label_patterns: ['''*.json''']
           mean: [0.485, 0.456, 0.406]
           std: [0.229, 0.224, 0.225]
@@ -66,15 +60,9 @@ data:
             IC: 2
             resistor: 3
             transistor: 4
-          S: [13, 26, 52]  # imsize // 32, imsize // 16, imsize // 8
-          anchors: [
-            [[116.48, 91.52], [158.08, 199.68], [374.4, 324.48]],  # S = 13
-            [[29.12, 62.4 ], [62.4, 45.76], [58.24, 120.64]],  # S = 26
-            [[8.32, 12.48], [16.64, 29.12], [33.28, 24.96]],  # S = 52
-          ]
-      batch_size: 32
+      batch_size: 4
       shuffle: False
-      num_workers: 12
+      num_workers: 2
       pin_memory: True
       drop_last: False
       collate_fn: 'lambda batch:tuple(zip(*batch))'
@@ -87,10 +75,10 @@ data:
         module: flame.core.data.labelme_dataset
         class: LabelmeDataset
         LabelmeDataset:
-          imsize: 416
+          image_size: 416
           dirnames:
-            - '''../test_dataset/val/'''
-          image_patterns: ['''*.jpg''', '''*.png''', '''*.jpeg''', '''*.JPG''', '''*.PNG''', '''*.JPEG''']
+            - '''../test_dataset/valid/'''
+          image_patterns: ['''*.jpg''', '''*.JPG''']
           label_patterns: ['''*.json''']
           mean: [0.485, 0.456, 0.406]
           std: [0.229, 0.224, 0.225]
@@ -100,15 +88,9 @@ data:
             IC: 2
             resistor: 3
             transistor: 4
-          S: [13, 26, 52]  # imsize // 32, imsize // 16, imsize // 8
-          anchors: [
-            [[116.48, 91.52], [158.08, 199.68], [374.4, 324.48]],  # S = 13
-            [[29.12, 62.4 ], [62.4, 45.76], [58.24, 120.64]],  # S = 26
-            [[8.32, 12.48], [16.64, 29.12], [33.28, 24.96]],  # S = 52
-          ]
-      batch_size: 32
+      batch_size: 4
       shuffle: False
-      num_workers: 12
+      num_workers: 2
       pin_memory: True
       drop_last: False
       collate_fn: 'lambda batch:tuple(zip(*batch))'
@@ -121,8 +103,9 @@ loss:
     lambda_noobj: 10
     lambda_bbox: 1
     lambda_class: 1
-    input_size: 416
-    anchors: [
+    image_size: 416
+    scales: [13, 26, 52]
+    anchor_sizes: [
       [[116.48, 91.52], [158.08, 199.68], [374.4, 324.48]],  # S = 13
       [[29.12, 62.4 ], [62.4, 45.76], [58.24, 120.64]],  # S = 26
       [[8.32, 12.48], [16.64, 29.12], [33.28, 24.96]],  # S = 52
@@ -132,7 +115,7 @@ model:
   module: flame.core.model.model
   class: Model
   Model:
-    weight_path: '''checkpoint/PASCAL/2110011416/best_model_30_loss=-1.4638.pt'''
+    weight_path: '''../78.1map_0.2threshold_PASCAL.tar'''
     in_channels: 3
     num_classes: 5
 
@@ -175,8 +158,9 @@ metrics:
               lambda_noobj: 10
               lambda_bbox: 1
               lambda_class: 1
-              input_size: 416
-              anchors: [
+              image_size: 416
+              scales: [13, 26, 52]
+              anchor_sizes: [
                 [[116.48, 91.52], [158.08, 199.68], [374.4, 324.48]],  # S = 13
                 [[29.12, 62.4 ], [62.4, 45.76], [58.24, 120.64]],  # S = 26
                 [[8.32, 12.48], [16.64, 29.12], [33.28, 24.96]],  # S = 52
@@ -232,7 +216,7 @@ best_saver:
   module: flame.handlers.checkpoint
   class: BestSaver
   BestSaver:
-    dirname: '''checkpoint/electronic_components/'''
+    dirname: '''checkpoint/vehicle_registration/'''
     score_name: '''loss'''
     mode: '''min'''
     evaluator_name: '''valid_evaluator'''
@@ -250,7 +234,7 @@ backup_saver:
       - '''history'''
       - '''lr_scheduler'''
       - '''early_stopping'''
-    dirname: '''checkpoint/electronic_components/'''
+    dirname: '''checkpoint/vehicle_registration/'''
     save_interval: 1
     n_saved: 1
 
@@ -260,7 +244,7 @@ engine:
   Trainer:
     dataset: config['data']['train']
     device: '''cuda'''
-    max_epochs: 10000
+    max_epochs: 100
 
 extralibs:
   torch: torch
