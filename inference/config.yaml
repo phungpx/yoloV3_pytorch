@@ -7,7 +7,7 @@ Predictor:
     YOLOv3:
       in_channels: 3
       num_classes: 5
-  weight_path: '''../best_model_59_loss=-0.9466.pt'''
+  weight_path: '''../checkpoint//best_model_59_loss=-0.9466.pt'''
   batch_size: 1
   image_size: 416
   mean: [0.485, 0.456, 0.406]
@@ -25,4 +25,4 @@ Predictor:
     IC: 2
     resistor: 3
     transistor: 4
-  device: '''cpu'''
+  device: '''cuda'''

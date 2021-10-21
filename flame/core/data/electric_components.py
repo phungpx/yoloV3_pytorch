@@ -79,7 +79,6 @@ class LabelmeDataset(Dataset):
         image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
 
         if len(label_info) == 1 and label_info[0]['label'] == -1:
-            print(f'Sample {image_info[0]} has no labels')
 
             # Target
             target = {
