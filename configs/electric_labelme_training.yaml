@@ -9,7 +9,7 @@ data:
         LabelmeDataset:
           imsize: 416
           dirnames:
-            - '''dataset/electronic_components/train/'''
+            - '''../test_dataset/train/'''
           image_patterns: ['''*.jpg''', '''*.png''', '''*.jpeg''', '''*.JPG''', '''*.PNG''', '''*.JPEG''']
           label_patterns: ['''*.json''']
           mean: [0.485, 0.456, 0.406]
@@ -55,7 +55,7 @@ data:
         LabelmeDataset:
           imsize: 416
           dirnames:
-            - '''dataset/electronic_components/train/'''
+            - '''../test_dataset/val/'''
           image_patterns: ['''*.jpg''', '''*.png''', '''*.jpeg''', '''*.JPG''', '''*.PNG''', '''*.JPEG''']
           label_patterns: ['''*.json''']
           mean: [0.485, 0.456, 0.406]
@@ -89,7 +89,7 @@ data:
         LabelmeDataset:
           imsize: 416
           dirnames:
-            - '''dataset/electronic_components/valid/'''
+            - '''../test_dataset/val/'''
           image_patterns: ['''*.jpg''', '''*.png''', '''*.jpeg''', '''*.JPG''', '''*.PNG''', '''*.JPEG''']
           label_patterns: ['''*.json''']
           mean: [0.485, 0.456, 0.406]

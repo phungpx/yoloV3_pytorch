@@ -3,7 +3,7 @@
 # 1. Inference
 * Download Weight
 ```bash
-https://www.kaggle.com/sannapersson/yolov3-weights-for-pascal-voc-with-781-map/
+https://drive.google.com/drive/folders/1mmJsO71xahQ9gVjPdKUpQAVm1_SXOeQp?usp=sharing
 ```
 
 * Run
