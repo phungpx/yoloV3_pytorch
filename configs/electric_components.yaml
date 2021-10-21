@@ -210,7 +210,7 @@ early_stopping:
     score_name: '''loss'''
     evaluator_name: '''valid_evaluator'''
     mode: '''min'''
-    patience: 50
+    patience: 10
 
 best_saver:
   module: flame.handlers.checkpoint
