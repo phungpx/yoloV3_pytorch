@@ -9,7 +9,7 @@ yoloV3_pytorch
       |	    └── electric_labelme_testing.yaml
       |
       ├── flame
-      |	    ├── core 
+      |	├── core 
       |     |     ├── data 
       |     |     |     ├── electric_components.py
       |     |     |     └── visualize.py
@@ -19,8 +19,6 @@ yoloV3_pytorch
       |     |     |     └── trainer.py
       |     |     |
       |     |     ├── loss
-      |     |     |     ├── compute_iou.py
-      |     |     |     ├── generate_anchors.py
       |     |     |     ├── loss.py
       |     |     |     └── yolov3_loss.py
       |     |     |
@@ -29,7 +27,7 @@ yoloV3_pytorch
       |     |           └── model.py
       |     |     
       |     |     
-      |	    └── handle               
+      |	└── handle               
       |           ├── metrics
       |           |     ├── loss
       |           |     |     ├── loss.py
