@@ -63,6 +63,7 @@ yoloV3_pytorch
 | Electric Components | 152 |  50    |  ---   | JSON    |
 
 ## 3. Model & Metrics
+![image](https://user-images.githubusercontent.com/61035926/167065201-7f02bce6-1e15-44e3-8545-8b0d576446f3.png)
 - I used YOLOv3 and also use pretrain model trained with "Electric Components" dataset to greatly reduce training time.
 - In training process, I used "Learning Rate Schedule" and "Early Stopping" to adjust learning rate follow loss value (3 epochs) and stop training when loss unimprove passing some epochs (10 epochs).
 
