@@ -4,13 +4,13 @@ data:
     class: DataLoader
     DataLoader:
       dataset:
-        module: flame.core.data.labelme_dataset
+        module: core.data.labelme_dataset
         class: LabelmeDataset
         LabelmeDataset:
           imsize: 416
           dirnames:
-            - '''../test_dataset/train/'''
-          image_patterns: ['''*.jpg''', '''*.png''', '''*.jpeg''', '''*.JPG''', '''*.PNG''', '''*.JPEG''']
+            - '''dataset/electronic_components/train/'''
+          image_patterns: ['''*.jpg''', '''*.JPG''']
           label_patterns: ['''*.json''']
           mean: [0.485, 0.456, 0.406]
           std: [0.229, 0.224, 0.225]
@@ -21,26 +21,20 @@ data:
             resistor: 3
             transistor: 4
           transforms:
-            # - iaa.MotionBlur()
-            # - iaa.ChangeColorTemperature()
-            # - iaa.GaussianBlur(sigma=(0, 1))
-            # - iaa.Grayscale(alpha=(0.0, 1.0))
-            # - iaa.Add(value=(-50, 50), per_channel=True)
+            - iaa.MotionBlur()
+            - iaa.ChangeColorTemperature()
+            - iaa.GaussianBlur(sigma=(0, 1))
+            - iaa.Grayscale(alpha=(0.0, 1.0))
+            - iaa.Add(value=(-50, 50), per_channel=True)
             - iaa.Fliplr(p=0.5)
-            # - iaa.Flipud(p=0.5)
-            # - iaa.Crop(percent=(0, 0.1))
-            # - iaa.Pad(percent=(0, 0.1), keep_size=False)
+            - iaa.Flipud(p=0.5)
+            - iaa.Crop(percent=(0, 0.1))
+            - iaa.Pad(percent=(0, 0.1), keep_size=False)
             # - iaa.Rot90(k=[0, 1, 2, 3], keep_size=False)
             # - iaa.Affine(rotate=(0, 360), shear=(-2, 2), fit_output=True)
-          S: [13, 26, 52]  # imsize // 32, imsize // 16, imsize // 8
-          anchors: [
-            [[116.48, 91.52], [158.08, 199.68], [374.4, 324.48]],  # S = 13
-            [[29.12, 62.4 ], [62.4, 45.76], [58.24, 120.64]],  # S = 26
-            [[8.32, 12.48], [16.64, 29.12], [33.28, 24.96]],  # S = 52
-          ]
-      batch_size: 32
+      batch_size: 4
       shuffle: True
-      num_workers: 12
+      num_workers: 2
       pin_memory: True
       drop_last: False
       collate_fn: 'lambda batch:tuple(zip(*batch))'
@@ -50,13 +44,13 @@ data:
     class: DataLoader
     DataLoader:
       dataset:
-        module: flame.core.data.labelme_dataset
+        module: core.data.labelme_dataset
         class: LabelmeDataset
         LabelmeDataset:
           imsize: 416
           dirnames:
-            - '''../test_dataset/val/'''
-          image_patterns: ['''*.jpg''', '''*.png''', '''*.jpeg''', '''*.JPG''', '''*.PNG''', '''*.JPEG''']
+            - '''dataset/electronic_components/valid/'''
+          image_patterns: ['''*.jpg''', '''*.JPG''']
           label_patterns: ['''*.json''']
           mean: [0.485, 0.456, 0.406]
           std: [0.229, 0.224, 0.225]
@@ -66,15 +60,9 @@ data:
             IC: 2
             resistor: 3
             transistor: 4
-          S: [13, 26, 52]  # imsize // 32, imsize // 16, imsize // 8
-          anchors: [
-            [[116.48, 91.52], [158.08, 199.68], [374.4, 324.48]],  # S = 13
-            [[29.12, 62.4 ], [62.4, 45.76], [58.24, 120.64]],  # S = 26
-            [[8.32, 12.48], [16.64, 29.12], [33.28, 24.96]],  # S = 52
-          ]
-      batch_size: 32
+      batch_size: 4
       shuffle: False
-      num_workers: 12
+      num_workers: 2
       pin_memory: True
       drop_last: False
       collate_fn: 'lambda batch:tuple(zip(*batch))'
@@ -84,13 +72,13 @@ data:
     class: DataLoader
     DataLoader:
       dataset:
-        module: flame.core.data.labelme_dataset
+        module: core.data.labelme_dataset
         class: LabelmeDataset
         LabelmeDataset:
           imsize: 416
           dirnames:
-            - '''../test_dataset/val/'''
-          image_patterns: ['''*.jpg''', '''*.png''', '''*.jpeg''', '''*.JPG''', '''*.PNG''', '''*.JPEG''']
+            - '''dataset/electronic_components/valid/'''
+          image_patterns: ['''*.jpg''', '''*.JPG''']
           label_patterns: ['''*.json''']
           mean: [0.485, 0.456, 0.406]
           std: [0.229, 0.224, 0.225]
@@ -100,39 +88,34 @@ data:
             IC: 2
             resistor: 3
             transistor: 4
-          S: [13, 26, 52]  # imsize // 32, imsize // 16, imsize // 8
-          anchors: [
-            [[116.48, 91.52], [158.08, 199.68], [374.4, 324.48]],  # S = 13
-            [[29.12, 62.4 ], [62.4, 45.76], [58.24, 120.64]],  # S = 26
-            [[8.32, 12.48], [16.64, 29.12], [33.28, 24.96]],  # S = 52
-          ]
-      batch_size: 32
+      batch_size: 4
       shuffle: False
-      num_workers: 12
+      num_workers: 2
       pin_memory: True
       drop_last: False
       collate_fn: 'lambda batch:tuple(zip(*batch))'
 
 loss:
-  module: flame.core.loss.yolov3_loss
-  class: YOLOv3Loss
-  YOLOv3Loss:
+  module: core.loss.yolo_loss
+  class: YOLOLoss
+  YOLOLoss:
     lambda_obj: 1
     lambda_noobj: 10
     lambda_bbox: 1
     lambda_class: 1
     input_size: 416
-    anchors: [
+    scales: [13, 26, 52]
+    anchor_sizes: [
       [[116.48, 91.52], [158.08, 199.68], [374.4, 324.48]],  # S = 13
       [[29.12, 62.4 ], [62.4, 45.76], [58.24, 120.64]],  # S = 26
       [[8.32, 12.48], [16.64, 29.12], [33.28, 24.96]],  # S = 52
     ]
 
 model:
-  module: flame.core.model.model
+  module: core.model.model
   class: Model
   Model:
-    weight_path: '''checkpoint/PASCAL/2110011416/best_model_30_loss=-1.4638.pt'''
+    weight_path: '''checkpoint/pretrained_weight/78.1map_0.2threshold_PASCAL.tar'''
     in_channels: 3
     num_classes: 5
 
@@ -144,124 +127,104 @@ optim:
     lr: 0.0001
     weight_decay: 0.0001
 
-train_evaluator:
-  module: flame.handlers.metric_evaluator
-  class: MetricEvaluator
-  MetricEvaluator:
-    dataset: config['data']['train_eval']
-    device: '''cuda'''
-
-valid_evaluator:
-  module: flame.handlers.metric_evaluator
-  class: MetricEvaluator
-  MetricEvaluator:
-    dataset: config['data']['valid']
-    device: '''cuda'''
-
-metrics:
-  module: flame.handlers.metrics.metrics
-  class: Metrics
-  Metrics:
-    metrics:
-      loss:
-        module: flame.handlers.metrics.loss.loss
-        class: Loss
-        Loss:
-          loss_fn:
-            module: flame.handlers.metrics.loss.yolov3_loss
-            class: YOLOv3Loss
-            YOLOv3Loss:
-              lambda_obj: 1
-              lambda_noobj: 10
-              lambda_bbox: 1
-              lambda_class: 1
-              input_size: 416
-              anchors: [
-                [[116.48, 91.52], [158.08, 199.68], [374.4, 324.48]],  # S = 13
-                [[29.12, 62.4 ], [62.4, 45.76], [58.24, 120.64]],  # S = 26
-                [[8.32, 12.48], [16.64, 29.12], [33.28, 24.96]],  # S = 52
-              ]
-          output_transform: 'lambda x: (x[0], x[1])'
-    attach_to:
-      train_evaluator: '''train'''
-      valid_evaluator: '''valid'''
-
-screenlogger:
-  module: flame.handlers.screenlogger
-  class: ScreenLogger
-  ScreenLogger:
-    eval_names:
-      - '''train''' 
-      - '''valid'''
-
-history:
-  module: flame.handlers.checkpoint
-  class: History
-
-checkpoint_loader:
-  module: flame.handlers.checkpoint
-  class: CheckpointLoader
-  CheckpointLoader:
-    checkpoint_path: ''''''
-    mode: '''train'''
-
-terminate_on_nan:
-  module: flame.handlers.terminate_on_nan
-  class: TerminateOnNan
-
 lr_scheduler:
-  module: flame.handlers.lr_scheduler
+  module: core.handlers.lr_scheduler
   class: ReduceLROnPlateau
   ReduceLROnPlateau:
+    evaluator_name: '''valid'''
     score_name: '''loss'''
-    evaluator_name: '''valid_evaluator'''
+    optim: config['optim']
     mode: '''min'''
+    factor: 0.1
     patience: 3
     verbose: True
 
 early_stopping:
-  module: flame.handlers.early_stopping
+  module: core.handlers.early_stopping
   class: EarlyStopping
   EarlyStopping:
+    evaluator_name: '''valid'''
     score_name: '''loss'''
-    evaluator_name: '''valid_evaluator'''
-    mode: '''min'''
     patience: 50
-
-best_saver:
-  module: flame.handlers.checkpoint
-  class: BestSaver
-  BestSaver:
-    dirname: '''checkpoint/electronic_components/'''
-    score_name: '''loss'''
+    delta: 0
     mode: '''min'''
-    evaluator_name: '''valid_evaluator'''
-    n_saved: 1
 
-backup_saver:
-  module: flame.handlers.checkpoint
-  class: BackupSaver
-  BackupSaver:
-    modules:
-      - '''model'''
-      - '''optim'''
-      - '''backup_saver'''
-      - '''best_saver'''
-      - '''history'''
-      - '''lr_scheduler'''
-      - '''early_stopping'''
-    dirname: '''checkpoint/electronic_components/'''
-    save_interval: 1
-    n_saved: 1
+metric:
+  module: core.handlers.evaluator
+  class: Metrics
+  Metrics:
+    metrics:
+      # mAP:
+      #   module: core.metric.evaluator
+      #   class: Evaluator
+      #   Evaluator:
+      #     eval_fn:
+      #       module: core.metric.mAP
+      #       class: MeanAveragePrecision
+      #       MeanAveragePrecision:
+      #         classes:
+      #           EPASS: 0
+      #         iou_threshold: 0.5
+      #         method: '''every_point_interpolation'''
+      #         print_FP_files: False
+      #     output_transform: 'lambda x: (x[0], x[1], x[2])'
+      loss:
+        module: core.metric.loss
+        class: Loss
+        Loss:
+          loss_fn: config['loss']
+          output_transform: 'lambda x: (x[0], x[1])'  # preds, targets
 
-engine:
-  module: flame.core.engine.trainer
+writer:
+  module: core.handlers.writer
+  class: Writer
+  Writer:
+    save_dir: '''checkpoint/electronic_components/'''
+
+plotter:
+  module: core.handlers.plotter
+  class: Plotter
+  Plotter:
+    save_dir: '''checkpoint/electronic_components/'''
+
+logger:
+  module: core.handlers.logger
+  class: Logger
+  Logger:
+    save_dir: '''checkpoint/electronic_components/'''
+    mode: logging.DEBUG
+    format: '''%(asctime)s - %(name)s - %(levelname)s - %(message)s'''
+
+model_inspection:
+  module: core.handlers.model_inspection
+  class: ModelInspection
+  ModelInspection:
+    verbose: True
+    input_shape: '(416, 416, 3)'
+
+trainer:
+  module: core.engine
   class: Trainer
   Trainer:
-    dataset: config['data']['train']
-    device: '''cuda'''
-    max_epochs: 10000
+    project_name: '''YOLOV3'''
+    data:
+      train: config['data']['train']
+      train_eval: config['data']['train']
+      valid: config['data']['valid']
+      # test: config['data']['valid']
+    model: config['model']
+    loss: config['loss']
+    optim: config['optim']
+    metric: config['metric']
+    early_stopping: config['early_stopping']
+    lr_scheduler: config['lr_scheduler']
+    logger: config['logger']
+    writer: config['writer']
+    plotter: config['plotter']
+    model_inspection: config['model_inspection']
+    save_dir: '''checkpoint/electronic_components/'''
 
 extralibs:
   torch: torch
+  logging: logging
   iaa: imgaug.augmenters
