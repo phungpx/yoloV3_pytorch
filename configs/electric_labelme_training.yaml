@@ -7,10 +7,10 @@ data:
         module: core.data.labelme_dataset
         class: LabelmeDataset
         LabelmeDataset:
-          imsize: 416
+          image_size: 416
           dirnames:
             - '''dataset/electronic_components/train/'''
-          image_patterns: ['''*.jpg''', '''*.JPG''']
+          image_patterns: ['''*.*g''', '''*.*G''']
           label_patterns: ['''*.json''']
           mean: [0.485, 0.456, 0.406]
           std: [0.229, 0.224, 0.225]
@@ -30,11 +30,11 @@ data:
             - iaa.Flipud(p=0.5)
             - iaa.Crop(percent=(0, 0.1))
             - iaa.Pad(percent=(0, 0.1), keep_size=False)
-            # - iaa.Rot90(k=[0, 1, 2, 3], keep_size=False)
-            # - iaa.Affine(rotate=(0, 360), shear=(-2, 2), fit_output=True)
-      batch_size: 4
+            - iaa.Rot90(k=[0, 1, 2, 3], keep_size=False)
+            - iaa.Affine(rotate=(0, 360), shear=(-2, 2), fit_output=True)
+      batch_size: 8
       shuffle: True
-      num_workers: 2
+      num_workers: 12
       pin_memory: True
       drop_last: False
       collate_fn: 'lambda batch:tuple(zip(*batch))'
@@ -47,10 +47,10 @@ data:
         module: core.data.labelme_dataset
         class: LabelmeDataset
         LabelmeDataset:
-          imsize: 416
+          image_size: 416
           dirnames:
-            - '''dataset/electronic_components/valid/'''
-          image_patterns: ['''*.jpg''', '''*.JPG''']
+            - '''dataset/electronic_components/train/'''
+          image_patterns: ['''*.*g''', '''*.*G''']
           label_patterns: ['''*.json''']
           mean: [0.485, 0.456, 0.406]
           std: [0.229, 0.224, 0.225]
@@ -60,9 +60,9 @@ data:
             IC: 2
             resistor: 3
             transistor: 4
-      batch_size: 4
+      batch_size: 8
       shuffle: False
-      num_workers: 2
+      num_workers: 12
       pin_memory: True
       drop_last: False
       collate_fn: 'lambda batch:tuple(zip(*batch))'
@@ -75,10 +75,10 @@ data:
         module: core.data.labelme_dataset
         class: LabelmeDataset
         LabelmeDataset:
-          imsize: 416
+          image_size: 416
           dirnames:
             - '''dataset/electronic_components/valid/'''
-          image_patterns: ['''*.jpg''', '''*.JPG''']
+          image_patterns: ['''*.*g''', '''*.*G''']
           label_patterns: ['''*.json''']
           mean: [0.485, 0.456, 0.406]
           std: [0.229, 0.224, 0.225]
@@ -88,9 +88,9 @@ data:
             IC: 2
             resistor: 3
             transistor: 4
-      batch_size: 4
+      batch_size: 8
       shuffle: False
-      num_workers: 2
+      num_workers: 12
       pin_memory: True
       drop_last: False
       collate_fn: 'lambda batch:tuple(zip(*batch))'
@@ -103,7 +103,7 @@ loss:
     lambda_noobj: 10
     lambda_bbox: 1
     lambda_class: 1
-    input_size: 416
+    image_size: 416
     scales: [13, 26, 52]
     anchor_sizes: [
       [[116.48, 91.52], [158.08, 199.68], [374.4, 324.48]],  # S = 13
@@ -115,7 +115,7 @@ model:
   module: core.model.model
   class: Model
   Model:
-    weight_path: '''checkpoint/pretrained_weight/78.1map_0.2threshold_PASCAL.tar'''
+    weight_path: '''checkpoint/PASCAL/2110011416/best_model_30_loss=-1.4638.pt'''
     in_channels: 3
     num_classes: 5
 
@@ -136,7 +136,7 @@ lr_scheduler:
     optim: config['optim']
     mode: '''min'''
     factor: 0.1
-    patience: 3
+    patience: 5
     verbose: True
 
 early_stopping:
@@ -145,7 +145,7 @@ early_stopping:
   EarlyStopping:
     evaluator_name: '''valid'''
     score_name: '''loss'''
-    patience: 50
+    patience: 20
     delta: 0
     mode: '''min'''
 
@@ -154,19 +154,18 @@ metric:
   class: Metrics
   Metrics:
     metrics:
-      # mAP:
-      #   module: core.metric.evaluator
-      #   class: Evaluator
-      #   Evaluator:
-      #     eval_fn:
-      #       module: core.metric.mAP
-      #       class: MeanAveragePrecision
-      #       MeanAveragePrecision:
-      #         classes:
-      #           EPASS: 0
-      #         iou_threshold: 0.5
-      #         method: '''every_point_interpolation'''
-      #         print_FP_files: False
+      # coco_eval:
+      #   module: core.metric.COCO_eval
+      #   class: COCOEvaluator
+      #   COCOEvaluator:
+      #     image_size: 416
+      #     save_dir: '''checkpoint/electronic_components/'''
+      #     classes:
+      #       capacitor: 0
+      #       diode: 1
+      #       IC: 2
+      #       resistor: 3
+      #       transistor: 4
       #     output_transform: 'lambda x: (x[0], x[1], x[2])'
       loss:
         module: core.metric.loss
