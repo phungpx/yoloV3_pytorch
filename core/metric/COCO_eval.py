@@ -114,8 +114,9 @@ class COCOEvaluator(MetricBase):
 
     def compute(self):
         if not len(self.detections):
-            raise Exception('the model does not provide any valid output,\
-                            check model architecture and the data input')
+            print('the model does not provide any valid output, check model architecture and the data input')
+            # raise Exception('the model does not provide any valid output,\
+            #                 check model architecture and the data input')
 
         # Create Ground Truth COCO Format
         if self.annotation_file is not None:
